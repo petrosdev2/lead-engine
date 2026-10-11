@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Lead Engine: finds each local lead's problem, writes the WhatsApp message and tracks follow-ups.",
-  "engines": { "node": "22.x" },
-  "dependencies": { "@vercel/blob": "^2.8.1" }
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.1",
+    "libphonenumber-js": "^1.13.15"
+  }
 }

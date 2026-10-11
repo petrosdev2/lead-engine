@@ -127,6 +127,9 @@ label.c{display:flex; gap:8px; align-items:center; font-size:.9rem; margin-botto
 .panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:18px}
 .panel h2{margin-bottom:12px}
 .note{font-size:.88rem; color:var(--muted)}
+ol.steps{margin:10px 0 14px 1.3em; padding:0}
+ol.steps li{margin:4px 0}
+ol.steps a{color:var(--pine)}
 .callout{background:var(--amber-soft); border:1px solid var(--amber); border-radius:8px; padding:10px 12px; font-size:.9rem; margin-bottom:12px}
 
 .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:24px}
@@ -224,6 +227,7 @@ const state = {
   view: 'today', filter: { tier: 'all', status: 'all', wa: 'all', svc: 'all', q: '' }, shown: 100,
   imp: { text: '', rows: null, headers: [], map: {}, city: '', st: '', niche: '', msg: '' },
   drawer: null, busy: null, textbox: null, opened: {}, todayTab: 'wa', gate: '', gateMsg: '',
+  find: { what: '', where: '', country: '', countryManual: false, n: 40, ready: null, loading: false, left: null, perMonth: null, busy: false, msg: '', err: '', editKey: false, rejected: false },
   sample: null, downloads: null
 };
 const KEY = 'lead-engine-v1';
@@ -409,7 +413,7 @@ function intl(raw){
 const waNum = l => intl(l.waPhone) || intl(l.phone);
 const waUrl = (l, text) => 'https://wa.me/' + waNum(l) + (text ? '?text=' + encodeURIComponent(text) : '');
 const MOBILE = { '234': /^[789][01]/, '233': /^[25]/, '254': /^[17]/, '27': /^[6-8]/, '44': /^7/, '971': /^5/, '91': /^[6-9]/ };
-function numKind(l){ const n = waNum(l); for (const cc in MOBILE) if (n.indexOf(cc) === 0) return MOBILE[cc].test(n.slice(cc.length)) ? 'mobile' : 'landline'; return ''; }
+function numKind(l){ if (l.pk && !intl(l.waPhone)) return l.pk === 'mobile' || l.pk === 'landline' ? l.pk : ''; const n = waNum(l); for (const cc in MOBILE) if (n.indexOf(cc) === 0) return MOBILE[cc].test(n.slice(cc.length)) ? 'mobile' : 'landline'; return ''; }
 function channel(l){
   const mail = !!(l.email && l.emailVerified);
   if (l.wa === 'yes' && waNum(l) && (state.settings.chan === 'wa' || !mail)) return 'wa';
@@ -630,6 +634,7 @@ function readImport(){
     const email = (get(r, 'email').match(/[^\s,;"'\[\]<>]+@[^\s,;"'\[\]<>]+\.[a-z]{2,}/i) || [''])[0];
     const yn = k => raw(r, k).toLowerCase();
     const audit = {}; let finding = get(r, 'finding');
+    const pk = yn('phonekind');
     if (/^http:\/\//i.test(site) && !yn('audithttps')) audit.nohttps = true;
     if (yn('auditchecked') === 'yes' && yn('auditsite') === 'ok') {
       audit.done = true;
@@ -646,6 +651,7 @@ function readImport(){
       lastReview: toISO(get(r, 'lastReview')), placeId: get(r, 'placeId'), email, emailVerified: false,
       ownerName: owner, niche: im.niche.trim(), status: 'new', createdAt: todayISO(), note: '', finding, previewUrl: '', audit
     };
+    if (pk === 'mobile' || pk === 'landline') l.pk = pk;
     const k = dedupeKey(l), ex = byKey[k];
     if (ex && ex.id.indexOf('L' + base) !== 0) {
       const p = {};
@@ -670,6 +676,102 @@ function exampleRows(){
     + 'Example Bright Office Care,Commercial cleaning service,(918) 555-0119,"5 Demo Rd, Tulsa, OK",Tulsa,OK,http://examplebrightoffice.com,4.6,133,,example-3,+19185550119,yes,ok,no,no,yes,no,The quote page still shows prices from two years ago.\n'
     + 'Example Quick Shine,Cleaning service,(918) 555-0163,"9 Test Ln, Tulsa, OK",Tulsa,OK,https://examplequickshine.com,3.9,58,' + d + ',example-5,,yes,ok,yes,yes,yes,yes,\n'
     + 'Example Mega Clean Co,Cleaning service,(918) 555-0100,"1 Test Blvd, Tulsa, OK",Tulsa,OK,https://examplemegaclean.com,4.9,640,,example-4,,,,,,,,\n';
+}
+
+/* ---------- find leads (hosted app only) ---------- */
+const REGIONS = 'AC AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TA TC TD TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW'.split(' ');
+const ALIAS = { usa: 'US', us: 'US', america: 'US', 'united states of america': 'US', uk: 'GB', england: 'GB', scotland: 'GB', wales: 'GB', britain: 'GB', 'northern ireland': 'GB', uae: 'AE', emirates: 'AE', turkey: 'TR', 'ivory coast': 'CI', 'czech republic': 'CZ', holland: 'NL', deutschland: 'DE', 'hong kong': 'HK', macau: 'MO', burma: 'MM', myanmar: 'MM', 'dr congo': 'CD', congo: 'CG', 'south korea': 'KR', korea: 'KR', russia: 'RU', vietnam: 'VN', palestine: 'PS', 'cape verde': 'CV', swaziland: 'SZ', bosnia: 'BA', trinidad: 'TT' };
+const UNSURE = { georgia: 1, jersey: 1 };
+const plain = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+let regionList = null;
+function countryList(){
+  if (regionList) return regionList;
+  let dn = null; try { dn = new Intl.DisplayNames(['en'], { type: 'region' }); } catch (e) {}
+  regionList = REGIONS.map(c => { let n = ''; try { n = dn ? dn.of(c) : ''; } catch (e) {} return [c, n && n !== c ? n : c]; }).sort((a, b) => a[1].localeCompare(b[1]));
+  return regionList;
+}
+// The country named last in the text wins, so "Atlanta, Georgia, USA" reads as the United States.
+function guessCountry(text){
+  const t = ' ' + plain(text) + ' '; let best = null;
+  const look = (name, code) => {
+    const n = plain(name); if (n.length < 2 || UNSURE[n]) return;
+    const at = t.lastIndexOf(' ' + n + ' '); if (at < 0) return;
+    if (n === 'mexico' && t.slice(Math.max(0, at - 3), at) === 'new') return;
+    const end = at + n.length;
+    if (!best || end > best.end || (end === best.end && n.length > best.len)) best = { code, end, len: n.length, name: n };
+  };
+  countryList().forEach(c => look(c[1], c[0])); Object.keys(ALIAS).forEach(k => look(k, ALIAS[k]));
+  return best;
+}
+function cityOf(where){
+  let c = String(where || '').split(',').map(x => x.trim()).filter(Boolean)[0] || '';
+  const g = guessCountry(c), w = c.split(/\s+/);
+  if (g && plain(c).slice(-g.name.length) === g.name) { const cut = w.slice(0, w.length - g.name.split(' ').length).join(' '); if (cut) c = cut; }
+  return c === c.toLowerCase() ? c.replace(/(^|[\s-])([a-z])/g, (m, a, b) => a + b.toUpperCase()) : c;
+}
+const blankImp = () => ({ text: '', rows: null, headers: [], map: {}, city: '', st: '', niche: '', msg: '' });
+async function loadFind(){
+  const f = state.find; if (f.loading || !store.api) return; f.loading = true;
+  try { const r = await apiCall('/api/search'); f.ready = !!r.ready; f.rejected = !!r.rejected; f.left = r.left == null ? null : r.left; f.perMonth = r.perMonth == null ? null : r.perMonth; }
+  catch (e) { if (e && e.status === 401) state.gate = 'login'; else if (f.ready === null) { f.ready = true; f.left = null; } }
+  f.loading = false;
+  if (state.gate || (state.view === 'import' && !f.busy)) softRender();
+}
+const findSay = t => { state.find.msg = t; const el = $('#find-msg'); if (el) el.textContent = t; };
+const FIND_HEAD = ['name', 'category', 'phone', 'phone_kind', 'whatsapp_number', 'address', 'city', 'website', 'rating', 'reviews', 'place id', 'email', 'audit_checked', 'audit_site', 'audit_https', 'audit_mobile', 'audit_form', 'audit_whatsapp_button', 'finding'];
+async function runFind(){
+  const f = state.find; if (f.busy) return;
+  const what = f.what.trim(), where = f.where.trim();
+  f.err = what.length < 2 ? 'Type the kind of business, for example: bounce house.' : where.length < 2 ? 'Type the city and country, for example: Rostock, Germany.' : !f.country ? 'Choose the country, so phone numbers are read correctly.' : '';
+  if (f.err) return render();
+  const q = what + ' in ' + where, want = Number(f.n) || 40, seen = {}, places = [], count = n => n + (n === 1 ? ' business' : ' businesses');
+  f.busy = true; f.msg = 'Searching Google Maps…'; state.imp = blankImp(); render();
+  try {
+    let ll = '';
+    for (let start = 0; start < want; start += 20) {
+      const r = await apiCall('/api/search', { op: 'find', q, country: f.country, start, ll }), before = places.length;
+      (r.places || []).forEach(p => { const k = p.placeId || (p.name + '|' + p.phone); if (!seen[k]) { seen[k] = 1; places.push(p); } });
+      ll = r.ll || ll;
+      findSay('Found ' + count(places.length) + ' so far…');
+      if (!r.more || places.length === before) break;
+    }
+    if (!places.length) { f.err = 'Google Maps showed no businesses for "' + q + '". Check the spelling or try a bigger area.'; return; }
+    const sites = places.filter(p => p.website); let done = 0, next = 0;
+    const say = () => findSay('Found ' + count(places.length) + '. Checking websites: ' + done + ' of ' + sites.length + '…');
+    const worker = async () => {
+      while (next < sites.length) {
+        const p = sites[next++];
+        try { p.audit = await apiCall('/api/audit', { url: p.website, country: f.country }); } catch (e) { if (e && e.status === 401) throw e; }
+        done++; say();
+      }
+    };
+    if (sites.length) { say(); await Promise.all([0, 1, 2, 3].map(worker)); }
+    const rows = places.map(p => { const a = p.audit || {}; return [p.name, p.category, p.phone, p.phoneKind, a.waNumber, p.address, '', p.website, p.rating, p.reviews, p.placeId, (a.emails || [])[0], p.audit ? 'yes' : '', a.site, a.https, a.mobile, a.form, a.wabtn, a.finding].map(v => String(v == null ? '' : v)); });
+    state.imp = Object.assign(blankImp(), { rows: [FIND_HEAD].concat(rows), headers: FIND_HEAD, map: guessMap(FIND_HEAD), niche: what.toLowerCase(), city: cityOf(where), fromSearch: q });
+  } catch (e) {
+    if (e && e.status === 401) state.gate = 'login'; else f.err = (e && e.message) || 'The search did not finish.';
+  } finally { f.busy = false; f.msg = ''; render(); loadFind(); }
+}
+function findPanel(){
+  const f = state.find;
+  if (f.ready === null) { loadFind(); return '<div class="panel"><p class="note">Checking the search connection…</p></div>'; }
+  if (!f.ready || f.editKey) return '<div class="panel"><h2>Connect the search</h2>'
+    + (f.rejected ? '<div class="callout">SerpApi no longer accepts the saved key. Save a new one.</div>' : '')
+    + '<p>The app reads Google Maps through SerpApi. Its free plan gives 250 searches a month, and each search returns up to 20 businesses.</p>'
+    + '<ol class="steps"><li>Open <a href="https://serpapi.com/users/sign_up" target="_blank" rel="noopener noreferrer">serpapi.com</a> and create a free account.</li><li>On your SerpApi dashboard, copy the value under Your Private API Key.</li><li>Paste it here and save.</li></ol>'
+    + '<label class="f"><span>SerpApi key</span><input type="password" id="find-key" autocomplete="off"><small>The key is kept on your server. The app never shows it again.</small></label>'
+    + '<div class="row" style="margin-top:0"><button class="btn primary" data-act="find-key">Save key</button>' + (f.ready ? '<button class="btn" data-act="find-edit-key" data-v="">Cancel</button>' : '') + '</div></div>';
+  const used = Math.ceil((Number(f.n) || 40) / 20), nOpt = n => opt(String(n), 'About ' + n + ' (' + (n / 20) + (n === 20 ? ' search' : ' searches') + ')', String(f.n));
+  const left = f.left == null ? '' : f.left + (f.perMonth ? ' of ' + f.perMonth : '') + ' searches left this month. ';
+  return '<div class="panel"><div class="grid2">'
+    + '<label class="f"><span>Kind of business</span><input type="text" id="find-what" data-inp="find-what" value="' + esc(f.what) + '" placeholder="bounce house"' + (f.busy ? ' disabled' : '') + '><small>One kind, singular. Your messages use this word.</small></label>'
+    + '<label class="f"><span>City and country</span><input type="text" id="find-where" data-inp="find-where" value="' + esc(f.where) + '" placeholder="Rostock, Germany"' + (f.busy ? ' disabled' : '') + '><small>A district works too, for example: Lekki, Lagos, Nigeria.</small></label>'
+    + '<label class="f"><span>Country</span><select id="find-country" data-chg="find-country"' + (f.busy ? ' disabled' : '') + '><option value="">Choose a country</option>' + countryList().map(c => opt(c[0], c[1], f.country)).join('') + '</select><small>Filled in from the place you type. It decides how phone numbers are read.</small></label>'
+    + '<label class="f"><span>How many businesses</span><select id="find-n" data-chg="find-n"' + (f.busy ? ' disabled' : '') + '>' + [20, 40, 60, 100].map(nOpt).join('') + '</select></label></div>'
+    + '<div class="row" style="margin-top:0"><button class="btn primary" data-act="find"' + (f.busy || f.left === 0 ? ' disabled' : '') + '>' + (f.busy ? 'Searching…' : 'Find leads') + '</button><span class="note" id="find-msg" role="status">' + esc(f.msg) + '</span></div>'
+    + (f.err ? '<div class="callout" style="margin:12px 0 0">' + esc(f.err) + '</div>' : '')
+    + (f.left === 0 ? '<div class="callout" style="margin:12px 0 0">You have used every search for this month. The count resets on your SerpApi renewal date.</div>' : '')
+    + '<p class="note" style="margin-top:12px">' + left + (f.left !== 0 ? 'This search uses up to ' + used + '. ' : '') + '<button class="linklike" data-act="find-edit-key" data-v="1" style="text-decoration:underline">Change search key</button></p></div>';
 }
 
 /* ---------- shared pieces ---------- */
@@ -742,7 +844,7 @@ function viewToday(){
   const sec = (title, n, hint, body) => '<section class="block"><header><h2>' + title + '</h2><span class="count">' + n + '</span>' + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</header>' + body + '</section>';
   let h = '<div class="head"><h1>Today</h1><p class="sub">' + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + '</p></div>' + gate;
 
-  if (!all.length) return h + '<div class="empty"><p>No leads yet. Bring in a list from your Google Maps extractor to fill this page.</p><div class="row"><button class="btn primary" data-act="nav" data-view="import">Import leads</button></div></div>';
+  if (!all.length) return h + '<div class="empty"><p>' + (store.api ? 'No leads yet. Search for a kind of business in any city to fill this page.' : 'No leads yet. Bring in a list from your Google Maps extractor to fill this page.') + '</p><div class="row"><button class="btn primary" data-act="nav" data-view="import">' + (store.api ? 'Find leads' : 'Import leads') + '</button></div></div>';
 
   if (!state.settings.sender) h += '<div class="callout">Add your name in Settings before you send anything. Until then your messages say [your name].</div>';
 
@@ -753,7 +855,7 @@ function viewToday(){
 
   const pills = waMode ? '<div class="pills"><button aria-pressed="' + (tab === 'wa') + '" data-act="today-tab" data-v="wa">On WhatsApp (' + waReady.length + ')</button><button aria-pressed="' + (tab === 'other') + '" data-act="today-tab" data-v="other">Not on WhatsApp (' + others.length + ')</button></div>' : '';
   const none = room === 0 && pool.length ? 'Daily limit reached. ' + pool.length + ' more leads are waiting for tomorrow.'
-    : tab === 'wa' ? (toCheck.length ? 'No confirmed WhatsApp leads yet. Check the numbers in the next section.' : 'No WhatsApp leads waiting. Import more leads.')
+    : tab === 'wa' ? (toCheck.length ? 'No confirmed WhatsApp leads yet. Check the numbers in the next section.' : 'No WhatsApp leads waiting. Find or import more leads.')
     : tab === 'other' ? 'No leads here. Leads you mark as not on WhatsApp appear in this list for email, calls or DMs.'
     : 'No Tier A or B leads waiting. Import more, or audit the websites below.';
   h += sec(waMode ? 'New leads to message' : 'New leads to contact', fresh.length, sentToday + ' of ' + cap + ' first messages sent today', pills + (fresh.length ? fresh.map(freshCard).join('') : '<div class="empty">' + none + '</div>'));
@@ -796,25 +898,29 @@ function viewLeads(){
 }
 
 function viewImport(){
-  const im = state.imp;
-  let h = '<div class="head"><h1>Import leads</h1><p class="sub">Paste or choose the CSV from your find-leads command or any Google Maps extractor. The first row must be the column names. Audit results and WhatsApp numbers in the file are read automatically.</p></div>'
-    + '<div class="panel"><label class="f"><span>Paste CSV or spreadsheet rows</span><textarea id="imp-text" rows="7" data-inp="imp-text" placeholder="name,phone,website,rating,reviews,...">' + esc(im.text) + '</textarea></label>'
+  const im = state.imp, hosted = store.api, searched = !!im.fromSearch;
+  let h = hosted ? '<div class="head"><h1>Find leads</h1><p class="sub">Search Google Maps for one kind of business in any city. The app checks each website, picks out published WhatsApp numbers and scores every business.</p></div>' + findPanel()
+    : '<div class="head"><h1>Import leads</h1><p class="sub">Paste or choose the CSV from your find-leads command or any Google Maps extractor. The first row must be the column names. Audit results and WhatsApp numbers in the file are read automatically.</p></div>';
+  const file = '<div class="panel">' + (hosted ? '<h2>Or import a file</h2><p class="note" style="margin-bottom:12px">Paste or choose a CSV from the find-leads command or any Google Maps extractor. The first row must be the column names.</p>' : '') + '<label class="f"><span>Paste CSV or spreadsheet rows</span><textarea id="imp-text" rows="7" data-inp="imp-text" placeholder="name,phone,website,rating,reviews,...">' + esc(im.text) + '</textarea></label>'
     + '<label class="f"><span>What kind of business is in this file?</span><input type="text" id="imp-niche" data-inp="imp-niche" value="' + esc(im.niche) + '" placeholder="' + esc(state.settings.niche || 'beauty salon') + '"><small>One kind, singular, for example: beauty salon. Your messages then say "I build websites for beauty salons".</small></label>'
     + '<div class="grid2"><label class="f"><span>City, if the file has no city column</span><input type="text" id="imp-city" data-inp="imp-city" value="' + esc(im.city) + '" placeholder="Tulsa"></label>'
     + '<label class="f"><span>State</span><input type="text" id="imp-st" data-inp="imp-st" value="' + esc(im.st) + '" placeholder="OK"></label></div>'
     + '<div class="row"><button class="btn primary" data-act="parse">Read these rows</button><label class="btn" style="cursor:pointer">Choose a CSV file<input type="file" id="imp-file" accept=".csv,.tsv,.txt,text/csv" data-chg="file" hidden></label><button class="btn" data-act="example">Insert example rows</button></div>'
     + (im.msg ? '<p class="note" style="margin-top:10px">' + esc(im.msg) + '</p>' : '') + '</div>';
+  if (!searched) h += file;
   if (im.rows) {
     const r = readImport(), tally = { A: 0, B: 0, C: 0, P: 0, X: 0 };
     r.fresh.forEach(l => { tally[assess(l).tier]++; });
     const onWa = r.fresh.filter(l => l.wa === 'yes').length, audited = r.fresh.filter(l => l.audit.done).length, total = r.fresh.length + r.updates.length;
-    h += '<div class="panel"><h2>Match the columns</h2><p class="note" style="margin-bottom:12px">Found ' + (im.rows.length - 1) + ' rows. Check each field points at the right column.</p><div class="grid2">'
+    if (!searched) h += '<div class="panel"><h2>Match the columns</h2><p class="note" style="margin-bottom:12px">Found ' + (im.rows.length - 1) + ' rows. Check each field points at the right column.</p><div class="grid2">'
       + FIELDS.map(f => '<label class="f"><span>' + f[1] + '</span><select id="map-' + f[0] + '" data-chg="map" data-f="' + f[0] + '"><option value="-1">Not in this file</option>' + im.headers.map((hd, i) => '<option value="' + i + '"' + (im.map[f[0]] === i ? ' selected' : '') + '>' + esc(hd) + '</option>').join('') + '</select></label>').join('')
-      + '</div></div><div class="panel"><h2>Ready to import</h2><p>' + r.fresh.length + (r.fresh.length === 1 ? ' new lead' : ' new leads') + (r.updates.length ? ', ' + r.updates.length + (r.updates.length === 1 ? ' stored lead gets' : ' stored leads get') + ' new details' : '') + (r.dup ? ', ' + r.dup + ' already stored' : '') + (r.noname ? ', ' + r.noname + ' rows skipped for having no name' : '') + '.</p>'
+      + '</div></div>';
+    h += '<div class="panel"><h2>Ready to import</h2>' + (searched ? '<p class="note" style="margin-bottom:6px">Search: ' + esc(im.fromSearch) + '</p>' : '') + '<p>' + r.fresh.length + (r.fresh.length === 1 ? ' new lead' : ' new leads') + (r.updates.length ? ', ' + r.updates.length + (r.updates.length === 1 ? ' stored lead gets' : ' stored leads get') + ' new details' : '') + (r.dup ? ', ' + r.dup + ' already stored' : '') + (r.noname ? ', ' + r.noname + ' rows skipped for having no name' : '') + '.</p>'
       + (r.fresh.length ? '<p class="note" style="margin-top:6px">Tier A: ' + tally.A + '. Tier B: ' + tally.B + '. Tier C: ' + tally.C + '. Needs a website audit: ' + tally.P + '. Excluded: ' + tally.X + '.</p>'
         + '<p class="note">' + onWa + ' with a WhatsApp number found. ' + audited + ' with a website already audited.</p>' : '')
       + '<div class="row"><button class="btn primary" data-act="do-import"' + (total ? '' : ' disabled') + '>' + (r.fresh.length || !r.updates.length ? 'Import ' + r.fresh.length + (r.fresh.length === 1 ? ' lead' : ' leads') : 'Update ' + r.updates.length + (r.updates.length === 1 ? ' lead' : ' leads')) + '</button></div></div>';
   }
+  if (searched) h += file;
   return h;
 }
 
@@ -965,7 +1071,7 @@ function renderNav(){
   if (state.gate) { $('#nav').innerHTML = ''; $('#foot').textContent = ''; return; }
   let due = 0;
   if (state.ready) { const t = todayISO(); computeAll().forEach(x => { if (x.l.status === 'replied' || x.l.status === 'booked' || (x.l.status === 'contacted' && x.st && x.st.due <= t)) due++; }); }
-  $('#nav').innerHTML = NAV.map(v => '<button data-act="nav" data-view="' + v[0] + '"' + (state.view === v[0] ? ' aria-current="page"' : '') + '><span>' + v[1] + '</span>' + (v[0] === 'today' && due ? '<span class="n">' + due + '</span>' : '') + '</button>').join('');
+  $('#nav').innerHTML = NAV.map(v => '<button data-act="nav" data-view="' + v[0] + '"' + (state.view === v[0] ? ' aria-current="page"' : '') + '><span>' + (v[0] === 'import' && store.api ? 'Find leads' : v[1]) + '</span>' + (v[0] === 'today' && due ? '<span class="n">' + due + '</span>' : '') + '</button>').join('');
   $('#foot').textContent = state.mode === 'cloud' ? 'Saved with this page' : state.mode === 'api' ? 'Saved to your database' : state.mode === 'local' ? 'Saved in this browser' : state.mode === 'memory' ? 'Not saved' : '';
 }
 function render(){
@@ -1047,7 +1153,7 @@ const actions = {
     try { await apiCall('/api/auth', { op: state.gate === 'setup' ? 'setup' : 'login', password: pw }); state.gate = ''; state.ready = false; render(); await store.pull(); }
     catch (e) { say(e.message || 'That did not work.'); }
   },
-  async 'sign-out'(){ try { await apiCall('/api/auth', { op: 'logout' }); } catch (e) {} state.leads = {}; store.docOf = {}; store.pulled = 0; state.gate = 'login'; state.view = 'today'; actions.close(); render(); },
+  async 'sign-out'(){ try { await apiCall('/api/auth', { op: 'logout' }); } catch (e) {} state.leads = {}; store.docOf = {}; store.pulled = 0; state.gate = 'login'; state.view = 'today'; state.find.ready = null; state.imp = blankImp(); actions.close(); render(); },
   async 'change-pw'(){
     const cur = $('#pw-cur'), nw = $('#pw-new');
     try { await apiCall('/api/auth', { op: 'change', current: cur.value, password: nw.value }); cur.value = ''; nw.value = ''; toast('Password changed. Other devices must sign in again.'); }
@@ -1078,7 +1184,15 @@ const actions = {
   'stop-ai'(){ if (aiCtl) aiCtl.abort(); },
   'dl-preview'(b, id){ const pv = buildPreview(state.leads[id]); saveFile(pv.file, pv.html, 'Preview file: ' + pv.file); },
   'use-base'(b, id){ store.update(id, { previewUrl: b.dataset.url }); renderDrawer(); render(); toast('Preview link saved.'); },
-  parse(){ const im = state.imp, rows = parseTable(im.text); if (rows.length < 2) { im.rows = null; im.msg = 'Paste the column names plus at least one business.'; } else { im.rows = rows; im.headers = rows[0]; im.map = guessMap(rows[0]); im.msg = im.map.name < 0 ? 'No business name column was recognised. Pick it below.' : ''; } render(); },
+  find(){ runFind(); },
+  'find-edit-key'(b){ state.find.editKey = !!b.dataset.v; render(); const el = $('#find-key'); if (el) el.focus(); },
+  async 'find-key'(b){
+    const el = $('#find-key'), f = state.find, k = el ? el.value.trim() : ''; if (!k) return toast('Paste your SerpApi key first.');
+    if (b) b.disabled = true;
+    try { const r = await apiCall('/api/search', { op: 'key', key: k }); Object.assign(f, { ready: !!r.ready, left: r.left == null ? null : r.left, perMonth: r.perMonth == null ? null : r.perMonth, editKey: false, rejected: false, err: '' }); toast('Search is connected.'); render(); }
+    catch (e) { if (b) b.disabled = false; if (e && e.status === 401) { state.gate = 'login'; return render(); } toast(e.message || 'Could not save the key.'); }
+  },
+  parse(){ const im = state.imp, rows = parseTable(im.text); im.fromSearch = ''; if (rows.length < 2) { im.rows = null; im.msg = 'Paste the column names plus at least one business.'; } else { im.rows = rows; im.headers = rows[0]; im.map = guessMap(rows[0]); im.msg = im.map.name < 0 ? 'No business name column was recognised. Pick it below.' : ''; } render(); },
   example(){ state.imp.text = exampleRows(); actions.parse(); },
   'do-import'(){
     const r = readImport(); if (!r.fresh.length && !r.updates.length) return;
@@ -1113,10 +1227,14 @@ const changes = {
   'f-status'(el){ state.filter.status = el.value; reList(); },
   'f-wa'(el){ state.filter.wa = el.value; reList(); },
   map(el){ state.imp.map[el.dataset.f] = Number(el.value); render(); },
+  'find-country'(el){ state.find.country = el.value; state.find.countryManual = !!el.value; },
+  'find-n'(el){ state.find.n = Number(el.value) || 40; render(); },
   file(el){ const file = el.files && el.files[0]; if (!file) return; const fr = new FileReader(); fr.onload = () => { state.imp.text = String(fr.result || ''); actions.parse(); }; fr.onerror = () => toast('That file could not be read.'); fr.readAsText(file); }
 };
 const inputs = {
   q(el){ state.filter.q = el.value; reList(); },
+  'find-what'(el){ state.find.what = el.value; },
+  'find-where'(el){ const f = state.find; f.where = el.value; if (f.countryManual) return; const g = guessCountry(el.value), code = g ? g.code : ''; if (code !== f.country) { f.country = code; const s = $('#find-country'); if (s) s.value = code; } },
   'imp-text'(el){ state.imp.text = el.value; },
   'imp-city'(el){ state.imp.city = el.value; },
   'imp-st'(el){ state.imp.st = el.value; },
@@ -1134,6 +1252,8 @@ document.addEventListener('input', e => { const el = e.target.closest('[data-inp
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#layer').firstChild) actions.close();
   if (e.key === 'Enter' && state.gate && e.target.id && /^gate-pw/.test(e.target.id)) actions['gate-go']();
+  if (e.key === 'Enter' && !state.gate && /^find-(what|where)$/.test(e.target.id || '')) actions.find();
+  if (e.key === 'Enter' && !state.gate && e.target.id === 'find-key') actions['find-key']();
 });
 document.addEventListener('visibilitychange', autoPull);
 setInterval(autoPull, 60000);

@@ -1,0 +1,1151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Lead Engine</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F5F3; --surface:#FFFFFF; --ink:#13221E; --muted:#5B6B65; --line:#D3DCD7;
+  --pine:#1D5B49; --pine-ink:#FFFFFF; --pine-soft:#DDEBE5;
+  --amber:#E3A125; --amber-ink:#2B1D00; --amber-soft:#FBEFD3;
+  --clay:#B2432E; --clay-soft:#F6E0DB;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1917; --surface:#16231F; --ink:#E7EFEB; --muted:#93A59E; --line:#2A3A35;
+    --pine:#5FC2A3; --pine-ink:#0B1513; --pine-soft:#1D332C;
+    --amber:#F0B748; --amber-ink:#241800; --amber-soft:#3A2F14;
+    --clay:#E5846F; --clay-soft:#3B201A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1917; --surface:#16231F; --ink:#E7EFEB; --muted:#93A59E; --line:#2A3A35;
+  --pine:#5FC2A3; --pine-ink:#0B1513; --pine-soft:#1D332C;
+  --amber:#F0B748; --amber-ink:#241800; --amber-soft:#3A2F14;
+  --clay:#E5846F; --clay-soft:#3B201A;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0; min-height:100%; background:var(--paper); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit; color:inherit}
+h1,h2,h3{font-family:var(--display); margin:0; line-height:1.15}
+h1{font-size:clamp(1.9rem,4vw,2.6rem); font-weight:700; letter-spacing:-0.02em}
+h2{font-size:1.15rem; font-weight:650}
+h3{font-size:1.02rem; font-weight:650}
+p{margin:0}
+:focus-visible{outline:2px solid var(--pine); outline-offset:2px; border-radius:4px}
+
+.app{display:grid; grid-template-columns:216px minmax(0,1fr); min-height:100%}
+.rail{background:var(--surface); border-right:1px solid var(--line); padding:22px 14px}
+.rail-in{position:sticky; top:22px; display:flex; flex-direction:column; gap:22px}
+.brand{font-family:var(--display); font-weight:800; font-size:1.3rem; letter-spacing:-0.02em; padding:0 8px}
+.brand small{display:block; font-family:var(--body); font-weight:400; font-size:.78rem; color:var(--muted); letter-spacing:0; margin-top:2px}
+.nav{display:flex; flex-direction:column; gap:2px}
+.nav button{all:unset; cursor:pointer; padding:9px 10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-weight:500}
+.nav button:hover{background:var(--paper)}
+.nav button[aria-current="page"]{background:var(--pine-soft); color:var(--ink); font-weight:600}
+.nav .n{font-size:.78rem; background:var(--amber); color:var(--amber-ink); border-radius:99px; padding:0 7px; font-weight:600; font-variant-numeric:tabular-nums}
+.rail .foot{font-size:.78rem; color:var(--muted); padding:0 8px}
+main{padding:34px clamp(16px,4vw,48px) 80px; max-width:1040px; width:100%}
+.head{margin-bottom:26px}
+.head .sub{color:var(--muted); margin-top:6px; max-width:62ch}
+
+.btn{appearance:none; border:1px solid var(--line); background:var(--surface); padding:7px 13px; border-radius:8px; cursor:pointer; font-weight:500; white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--pine); border-color:var(--pine); color:var(--pine-ink); font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.warn{color:var(--clay); border-color:var(--clay)}
+.btn.small{padding:4px 10px; font-size:.86rem}
+.btn[disabled]{opacity:.5; cursor:not-allowed}
+a.btn{text-decoration:none; display:inline-block; color:var(--ink)}
+.badge.wa{background:var(--pine-soft); border-color:var(--pine); vertical-align:2px; margin-left:4px}
+.linklike{all:unset; cursor:pointer; font:inherit}
+.linklike:hover{text-decoration:underline}
+
+.gate{background:var(--surface); border:1px solid var(--line); border-left:5px solid var(--amber); border-radius:10px; padding:14px 18px; margin-bottom:28px}
+.gate.pass{border-left-color:var(--pine)} .gate.fail{border-left-color:var(--clay)}
+.gate p{max-width:70ch}
+.meter{height:8px; background:var(--paper); border-radius:99px; margin-top:10px; overflow:hidden}
+.meter i{display:block; height:100%; background:var(--amber); border-radius:99px}
+
+.block{margin-bottom:34px}
+.block > header{display:flex; align-items:baseline; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+.block > header .count{color:var(--muted); font-variant-numeric:tabular-nums}
+.block > header .hint{color:var(--muted); font-size:.88rem; margin-left:auto}
+.empty{border:1px dashed var(--line); border-radius:10px; padding:18px; color:var(--muted)}
+
+.lead{display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:14px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:8px}
+.lead .where{color:var(--muted); font-size:.9rem}
+.lead .due{font-size:.88rem; font-weight:500; margin-top:4px}
+.lead .due.late{color:var(--clay)}
+.acts{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+.stamp{width:56px; height:56px; border-radius:12px; display:grid; place-items:center; align-content:center; font-family:var(--display); line-height:1; border:2px solid var(--line); color:var(--muted)}
+.stamp b{font-size:1.6rem; font-weight:800}
+.stamp span{font-size:.7rem; font-weight:600; margin-top:2px; font-variant-numeric:tabular-nums}
+.stamp.tA{background:var(--amber); border-color:var(--amber); color:var(--amber-ink)}
+.stamp.tB{border-color:var(--pine); color:var(--pine); background:var(--pine-soft)}
+.stamp.tX,.stamp.tP{border-style:dashed}
+.signals{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:4px 12px; font-size:.84rem; color:var(--muted)}
+.signals li::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%; border:1.5px solid var(--muted); margin-right:6px; vertical-align:1px}
+.signals li.on{color:var(--ink)}
+.signals li.on::before{background:var(--pine); border-color:var(--pine)}
+.signals li.offer{color:var(--pine); font-weight:600}
+.signals li.offer::before{display:none}
+.probs{list-style:none; margin:0; padding:0; display:grid; gap:6px}
+.probs li{display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:8px 10px; background:var(--paper); border-radius:8px; font-weight:500}
+.probs li span{color:var(--muted); font-weight:400; font-size:.86rem; text-align:right}
+.num{font-variant-numeric:tabular-nums; user-select:all; color:var(--ink); font-weight:500}
+.block .pills{margin:0 0 10px}
+.note a{color:var(--pine); overflow-wrap:anywhere}
+input[type=password]{border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 10px; width:100%; min-width:0}
+.badge{display:inline-block; font-size:.78rem; font-weight:600; padding:1px 8px; border-radius:99px; background:var(--paper); border:1px solid var(--line)}
+.badge.s-won{background:var(--pine); color:var(--pine-ink); border-color:var(--pine)}
+.badge.s-replied,.badge.s-booked{background:var(--amber-soft); border-color:var(--amber)}
+.badge.s-lost,.badge.s-unsub,.badge.s-dnc{background:var(--clay-soft); border-color:var(--clay)}
+.auditline{display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:8px; font-size:.88rem}
+.auditline label{display:flex; gap:6px; align-items:center; cursor:pointer}
+
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center}
+.toolbar input[type=search]{flex:1 1 200px}
+input[type=text],input[type=search],input[type=email],input[type=url],input[type=number],input[type=date],select,textarea{border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 10px; width:100%; min-width:0}
+textarea{resize:vertical; line-height:1.5}
+.toolbar select{width:auto}
+label.f{display:block; font-size:.86rem; font-weight:500; margin-bottom:12px}
+label.f > span{display:block; margin-bottom:4px}
+label.f small{display:block; font-weight:400; color:var(--muted); margin-top:3px}
+label.c{display:flex; gap:8px; align-items:center; font-size:.9rem; margin-bottom:8px; cursor:pointer}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:18px}
+.panel h2{margin-bottom:12px}
+.note{font-size:.88rem; color:var(--muted)}
+.callout{background:var(--amber-soft); border:1px solid var(--amber); border-radius:8px; padding:10px 12px; font-size:.9rem; margin-bottom:12px}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:24px}
+.stat{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px}
+.stat b{display:block; font-family:var(--display); font-size:1.7rem; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.1}
+.stat span{font-size:.84rem; color:var(--muted)}
+table{width:100%; border-collapse:collapse; font-size:.92rem}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted); font-size:.84rem}
+td.num{font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.funnel div{display:grid; grid-template-columns:110px minmax(0,1fr) 48px; gap:10px; align-items:center; margin-bottom:6px; font-size:.9rem}
+.funnel i{display:block; height:22px; background:var(--pine); border-radius:4px; min-width:3px}
+.funnel span:last-child{font-variant-numeric:tabular-nums; text-align:right; font-weight:600}
+
+.veil{position:fixed; inset:0; background:rgba(8,16,14,.45); z-index:20; display:flex; justify-content:flex-end}
+.sheet{background:var(--paper); width:min(560px,100%); height:100%; overflow-y:auto; padding:22px 22px calc(60px + env(safe-area-inset-bottom,0px)); padding-top:calc(22px + env(safe-area-inset-top,0px)); border-left:1px solid var(--line)}
+.sheet-top{display:grid; grid-template-columns:56px minmax(0,1fr) auto; gap:14px; align-items:start; margin-bottom:14px}
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin:16px 0}
+.tabs button{all:unset; cursor:pointer; padding:8px 12px; font-weight:500; border-bottom:2px solid transparent; margin-bottom:-1px}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--pine); font-weight:600}
+.pills{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px}
+.pills button{all:unset; cursor:pointer; padding:5px 11px; border-radius:99px; border:1px solid var(--line); font-size:.86rem; background:var(--surface)}
+.pills button[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.pills button.done::after{content:" sent"; color:var(--muted); font-size:.78rem}
+.pills button[aria-pressed="true"].done::after{color:inherit; opacity:.7}
+.row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center}
+.pvframe{border:1px solid var(--line); border-radius:10px; height:420px; overflow:auto; background:#fff; margin:12px 0}
+#toast{position:fixed; left:50%; bottom:calc(76px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:9px 16px; border-radius:99px; font-size:.9rem; z-index:40; max-width:90vw; opacity:0; pointer-events:none; transition:opacity .2s}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+
+@media (max-width:760px){
+  .app{display:block}
+  .rail{position:fixed; bottom:0; left:0; right:0; z-index:10; padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px)); border-right:0; border-top:1px solid var(--line)}
+  .rail-in{position:static; flex-direction:row; gap:0}
+  .brand,.rail .foot{display:none}
+  .nav{flex-direction:row; flex:1; justify-content:space-around}
+  .nav button{flex-direction:column; gap:1px; font-size:.78rem; padding:6px 8px; position:relative}
+  .nav .n{position:absolute; top:-2px; right:-2px}
+  main{padding:22px 14px 110px}
+  .lead{grid-template-columns:48px minmax(0,1fr)}
+  .lead .acts{grid-column:1 / -1; justify-content:flex-start}
+  .stamp{width:48px; height:48px} .stamp b{font-size:1.35rem}
+  .grid2{grid-template-columns:1fr}
+  .sheet{padding:16px 14px calc(60px + env(safe-area-inset-bottom,0px)); padding-top:calc(16px + env(safe-area-inset-top,0px))}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail"><div class="rail-in">
+    <div class="brand">Lead Engine<small>Petronix Technology</small></div>
+    <nav class="nav" id="nav" aria-label="Sections"></nav>
+    <div class="foot" id="foot"></div>
+  </div></aside>
+  <main id="view" aria-live="off"></main>
+</div>
+<div id="layer"></div>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const pad = n => String(n).padStart(2, '0');
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const dayNum = iso => { const p = String(iso).split('-').map(Number); return Math.round(Date.UTC(p[0], p[1] - 1, p[2]) / 864e5); };
+const addDays = (iso, n) => { const d = new Date((dayNum(iso) + n) * 864e5); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
+const daysBetween = (a, b) => dayNum(b) - dayNum(a);
+const isISO = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const nice = iso => isISO(iso) ? MONTHS[Number(iso.slice(5, 7)) - 1] + ' ' + Number(iso.slice(8)) : '';
+const words = s => (String(s || '').trim().match(/\S+/g) || []).length;
+const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'preview';
+function merge(t, p){ Object.keys(p).forEach(k => { const v = p[k]; if (v && typeof v === 'object' && !Array.isArray(v) && t[k] && typeof t[k] === 'object') merge(t[k], v); else t[k] = (v && typeof v === 'object') ? clone(v) : v; }); return t; }
+let toastTimer;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+const opt = (v, t, cur) => '<option value="' + v + '"' + (cur === v ? ' selected' : '') + '>' + esc(t) + '</option>';
+
+/* ---------- state ---------- */
+const DEFAULTS = {
+  sender: '', company: 'Petronix Technology LLC', niche: 'cleaning company',
+  price: 129, setup: 199, cur: '$', booking: '', address: '', cap: 30, previewBase: '', cc: '1',
+  chan: 'wa', offers: 'site,fix,booking,wa,reviews,gbp,brand',
+  headline: 'Reliable cleaning in {city}',
+  services: 'House cleaning\nDeep cleaning\nMove-in and move-out cleaning\nOffice cleaning\nRecurring weekly service'
+};
+const state = {
+  leads: {}, settings: Object.assign({}, DEFAULTS), ready: false, mode: 'loading',
+  view: 'today', filter: { tier: 'all', status: 'all', wa: 'all', svc: 'all', q: '' }, shown: 100,
+  imp: { text: '', rows: null, headers: [], map: {}, city: '', st: '', niche: '', msg: '' },
+  drawer: null, busy: null, textbox: null, opened: {}, todayTab: 'wa', gate: '', gateMsg: '',
+  sample: null, downloads: null
+};
+const KEY = 'lead-engine-v1';
+const CHUNK = 50;
+const TOUCH = { 1: { day: 1, label: 'Day 1 intro', off: 0 }, 2: { day: 3, label: 'Day 3 follow-up', off: 2 }, 3: { day: 5, label: 'Day 5 call', off: 4 }, 4: { day: 9, label: 'Day 9 final note', off: 8 } };
+const STATUS = { new: 'Not contacted', contacted: 'In sequence', replied: 'Replied', booked: 'Call booked', won: 'Client', lost: 'Lost', unsub: 'Unsubscribed', dnc: 'Do not contact' };
+
+/* ---------- storage ---------- */
+// Three homes for the data: Claude's shared store, this site's own API, or the browser.
+async function apiCall(path, body, method, signal){
+  const r = await fetch(path, { method: method || (body ? 'POST' : 'GET'), headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin', signal });
+  let j = null; try { j = await r.json(); } catch (e) {}
+  if (!r.ok) { const err = new Error((j && j.error) || 'The server did not answer (' + r.status + ').'); err.status = r.status; throw err; }
+  return j || {};
+}
+const apiSample = { json: async (prompt, o) => {
+  try { return (await apiCall('/api/personalise', { prompt }, 'POST', o && o.signal)).out; }
+  catch (e) { if (e && e.name === 'AbortError') throw { code: 'cancelled' }; if (e && e.status === 429) throw { code: 'rate_limited' }; throw { code: 'server', message: e && e.message }; }
+} };
+const store = {
+  db: null, api: false, docOf: {}, q: Promise.resolve(), pending: 0, pulled: 0,
+  enqueue(fn){
+    this.pending++;
+    this.q = this.q.then(fn).catch(e => { if (e && e.status === 401) { state.gate = 'login'; render(); } toast('Could not save. ' + ((e && e.message) || '')); }).then(() => { this.pending--; });
+    return this.q;
+  },
+  async init(){
+    let db = null;
+    try { if (window.claude && typeof window.claude.use === 'function') db = await window.claude.use('db'); } catch (e) { db = null; }
+    if (db) {
+      this.db = db; state.mode = 'cloud';
+      db.collection('leadsets').onSnapshot(snap => {
+        const leads = {}, docOf = {};
+        snap.docs.forEach(d => { const m = (d.data() || {}).leads || {}; Object.keys(m).forEach(id => { if (m[id]) { leads[id] = clone(m[id]); leads[id].id = id; docOf[id] = d.id; } }); });
+        state.leads = leads; this.docOf = docOf; state.ready = true; softRender();
+      }, () => { state.ready = true; toast('Lost the connection to your saved leads. Reload the page.'); softRender(); });
+      db.doc('config/main').onSnapshot(s => { if (s.exists) { state.settings = Object.assign({}, DEFAULTS, s.data()); softRender(); } }, () => {});
+      return;
+    }
+    if (!window.claude && /^https?:$/.test(location.protocol)) {
+      try {
+        const a = await apiCall('/api/auth');
+        if (typeof a.setup === 'boolean') {
+          this.api = true; state.mode = 'api';
+          if (a.ai) state.sample = apiSample;
+          if (!a.authed) { state.gate = a.setup ? 'login' : 'setup'; state.ready = true; return render(); }
+          return this.pull();
+        }
+      } catch (e) {
+        if (e && e.status === 503) { state.mode = 'api'; state.gate = 'down'; state.gateMsg = e.message; state.ready = true; return render(); }
+      }
+    }
+    state.mode = 'local';
+    try { const raw = localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); state.leads = o.leads || {}; state.settings = Object.assign({}, DEFAULTS, o.settings || {}); } } catch (e) { state.mode = 'memory'; }
+    state.ready = true; render();
+  },
+  async pull(){
+    try {
+      const d = await apiCall('/api/data');
+      if (this.pending) return;
+      const leads = {}, docOf = {};
+      Object.keys(d.sets || {}).forEach(doc => { const m = (d.sets[doc] || {}).leads || {}; Object.keys(m).forEach(id => { if (m[id]) { leads[id] = m[id]; leads[id].id = id; docOf[id] = doc; } }); });
+      state.leads = leads; this.docOf = docOf;
+      if (d.settings) state.settings = Object.assign({}, DEFAULTS, d.settings);
+      state.gate = ''; state.ready = true; this.pulled = Date.now(); softRender();
+    } catch (e) {
+      if (e && e.status === 401) state.gate = 'login';
+      else if (!this.pulled) { state.gate = 'down'; state.gateMsg = (e && e.message) || 'The server did not answer.'; }
+      state.ready = true; render();
+    }
+  },
+  save(op){
+    if (this.api) return this.enqueue(() => apiCall('/api/data', op));
+    const db = this.db;
+    if (op.op === 'set') return this.enqueue(() => db.doc('leadsets/' + op.doc).set({ leads: op.leads }));
+    if (op.op === 'update') return this.enqueue(() => db.doc('leadsets/' + op.doc).update({ leads: { [op.id]: op.patch } }));
+    if (op.op === 'remove') return this.enqueue(() => db.doc('leadsets/' + op.doc).update({ leads: { [op.id]: null } }));
+    if (op.op === 'settings') return this.enqueue(() => db.doc('config/main').set(op.settings));
+    if (op.op === 'clear') op.docs.forEach(d => this.enqueue(() => db.doc('leadsets/' + d).delete()));
+  },
+  remote(){ return !!(this.db || this.api); },
+  local(){ if (this.remote()) return; try { localStorage.setItem(KEY, JSON.stringify({ leads: state.leads, settings: state.settings })); } catch (e) { state.mode = 'memory'; } },
+  add(list){
+    list.forEach(l => { state.leads[l.id] = l; });
+    if (!this.remote()) return this.local();
+    const stampId = Date.now().toString(36);
+    for (let i = 0; i < list.length; i += CHUNK) {
+      const docId = 'set-' + stampId + '-' + (i / CHUNK), map = {};
+      list.slice(i, i + CHUNK).forEach(l => { const c = clone(l); delete c.id; map[l.id] = c; this.docOf[l.id] = docId; });
+      this.save({ op: 'set', doc: docId, leads: map });
+    }
+  },
+  update(id, patch){
+    const l = state.leads[id]; if (!l) return;
+    merge(l, patch);
+    if (!this.remote()) return this.local();
+    const docId = this.docOf[id]; if (docId) this.save({ op: 'update', doc: docId, id, patch: clone(patch) });
+  },
+  remove(id){
+    delete state.leads[id];
+    if (!this.remote()) return this.local();
+    const docId = this.docOf[id]; if (docId) this.save({ op: 'remove', doc: docId, id });
+  },
+  saveSettings(){ if (!this.remote()) return this.local(); this.save({ op: 'settings', settings: clone(state.settings) }); },
+  clear(){
+    const docs = Array.from(new Set(Object.values(this.docOf)));
+    state.leads = {}; this.docOf = {};
+    if (!this.remote()) return this.local();
+    this.save({ op: 'clear', docs });
+  }
+};
+
+/* ---------- problems, services and scoring ---------- */
+const SOCIAL = /(facebook\.com|fb\.com|fb\.me|instagram\.com|wa\.me|whatsapp\.com|linktr\.ee)/i;
+const SERVICES = {
+  site:    { name: 'New website', topic: l => 'a website for ' + l.name },
+  fix:     { name: 'Website fix-up', topic: () => 'your website' },
+  booking: { name: 'Quote and booking form', topic: l => 'a booking form for ' + l.name },
+  wa:      { name: 'WhatsApp button and auto-replies', topic: () => 'a WhatsApp button for your website' },
+  reviews: { name: 'Google review system', topic: l => 'getting more Google reviews for ' + l.name },
+  gbp:     { name: 'Google listing tune-up', topic: () => 'your Google listing' },
+  brand:   { name: 'Logo and branding', topic: l => 'a logo for ' + l.name }
+};
+const PROBLEMS = {
+  nosite: { svc: 'site', w: 9 }, social: { svc: 'site', w: 8 }, down: { svc: 'fix', w: 8 },
+  nomobile: { svc: 'fix', w: 7 }, nohttps: { svc: 'fix', w: 6 }, slow: { svc: 'fix', w: 6 },
+  noform: { svc: 'booking', w: 5 }, lowrating: { svc: 'reviews', w: 5 },
+  fewreviews: { svc: 'reviews', w: 4 }, stale: { svc: 'reviews', w: 4 },
+  nowa: { svc: 'wa', w: 3 }, gbp: { svc: 'gbp', w: 3 }, brand: { svc: 'brand', w: 2 }
+};
+const AUDIT = { down: 'Website does not load', slow: 'Slow on mobile', nohttps: 'Not secure (no HTTPS)', nomobile: 'Hard to use on a phone', noform: 'No quote form or booking link', nowa: 'No WhatsApp button' };
+const OTHER = { gbp: 'Google listing is incomplete', brand: 'No logo or dated branding' };
+const socialKind = u => /facebook|fb\./i.test(u) ? 'Facebook page' : /instagram/i.test(u) ? 'Instagram page' : /wa\.me|whatsapp/i.test(u) ? 'WhatsApp link' : 'link page';
+function probLabel(k, l){
+  if (k === 'nosite') return 'No website';
+  if (k === 'social') return 'Only a ' + socialKind(l.website) + ', no website';
+  if (k === 'lowrating') return 'Google rating of ' + l.rating;
+  if (k === 'fewreviews') return 'Only ' + l.reviews + ' Google review' + (Number(l.reviews) === 1 ? '' : 's');
+  if (k === 'stale') return 'No new Google review in over 6 months';
+  return AUDIT[k] || OTHER[k] || k;
+}
+function offered(){ const o = {}; String(state.settings.offers || '').split(',').forEach(k => { if (SERVICES[k]) o[k] = true; }); return o; }
+function assess(l){
+  const site = String(l.website || '').trim();
+  const hasSite = !!site && !SOCIAL.test(site);
+  const a = l.audit || {}, off = offered();
+  const reviews = Number(l.reviews) || 0, rating = Number(l.rating) || 0;
+  const age = isISO(l.lastReview) ? daysBetween(l.lastReview, todayISO()) : null;
+  const recent = l.recentManual === true || (age !== null && age >= 0 && age <= 90);
+  const found = [];
+  if (!hasSite) found.push(site ? 'social' : 'nosite'); else Object.keys(AUDIT).forEach(k => { if (a[k]) found.push(k); });
+  if (rating && rating < 4.3 && reviews >= 10) found.push('lowrating');
+  if (reviews >= 1 && reviews < 20) found.push('fewreviews');
+  if (age !== null && age > 180 && !l.recentManual) found.push('stale');
+  Object.keys(OTHER).forEach(k => { if (a[k]) found.push(k); });
+  const probs = found.filter(k => off[PROBLEMS[k].svc]).sort((x, y) => PROBLEMS[y].w - PROBLEMS[x].w);
+  const fails = hasSite ? Object.keys(AUDIT).filter(k => a[k]).length : 0;
+  const bucket = !hasSite ? 'none' : fails >= 2 ? 'weak' : a.done ? 'ok' : 'unaudited';
+  const top = probs[0], autoSvc = top ? PROBLEMS[top].svc : '';
+  const manual = !!(l.service && off[l.service]);
+  const svc = manual ? l.service : autoSvc;
+  const need = top ? (PROBLEMS[top].w >= 8 ? 3 : PROBLEMS[top].w >= 5 ? 2 : 1) : manual ? 1 : 0;
+  const sig = { need, reviews: reviews >= 20 && reviews <= 200 ? 3 : 0, recent: recent ? 2 : 0, rating: rating >= 4.3 ? 1 : 0 };
+  const score = sig.need + sig.reviews + sig.recent + sig.rating;
+  const waiting = !svc && bucket === 'unaudited';
+  let why = '';
+  if (l.franchise) why = 'Franchise';
+  else if (reviews > 200) why = 'Over 200 reviews';
+  else if (reviews === 0) why = 'No reviews';
+  else if (!svc && !waiting) why = 'No problem found';
+  const tier = why ? 'X' : waiting ? 'P' : score >= 7 ? 'A' : score >= 4 ? 'B' : 'C';
+  return { hasSite, fails, bucket, sig, score, tier, why, recent, probs, svc, autoSvc };
+}
+function intl(raw){
+  raw = String(raw || '').trim(); const d = raw.replace(/\D/g, '');
+  if (!d) return '';
+  const cc = String(state.settings.cc || '').replace(/\D/g, '');
+  if (raw.charAt(0) === '+') return d;
+  if (d.slice(0, 2) === '00') return d.slice(2);
+  if (cc && d.slice(0, cc.length) === cc && d.length > 10) return d;
+  return cc + d.replace(/^0+/, '');
+}
+const waNum = l => intl(l.waPhone) || intl(l.phone);
+const waUrl = (l, text) => 'https://wa.me/' + waNum(l) + (text ? '?text=' + encodeURIComponent(text) : '');
+const MOBILE = { '234': /^[789][01]/, '233': /^[25]/, '254': /^[17]/, '27': /^[6-8]/, '44': /^7/, '971': /^5/, '91': /^[6-9]/ };
+function numKind(l){ const n = waNum(l); for (const cc in MOBILE) if (n.indexOf(cc) === 0) return MOBILE[cc].test(n.slice(cc.length)) ? 'mobile' : 'landline'; return ''; }
+function channel(l){
+  const mail = !!(l.email && l.emailVerified);
+  if (l.wa === 'yes' && waNum(l) && (state.settings.chan === 'wa' || !mail)) return 'wa';
+  return mail ? 'email' : 'call';
+}
+const channelName = l => ({ wa: 'WhatsApp', email: 'email', call: 'call or DM' })[channel(l)];
+function nextStep(l, a){
+  a = a || assess(l);
+  if (l.status === 'new') return (a.tier === 'A' || a.tier === 'B') ? { n: 1, due: todayISO() } : null;
+  if (l.status !== 'contacted' || !isISO(l.t1)) return null;
+  for (let n = 2; n <= 4; n++) if (!l['t' + n]) return { n, due: addDays(l.t1, TOUCH[n].off) };
+  return null;
+}
+const lastTouch = l => l.t4 || l.t3 || l.t2 || l.t1 || '';
+const suppressed = l => l.status === 'unsub' || l.status === 'dnc';
+
+/* ---------- messages ---------- */
+const plural = s => /[^aeiou]y$/.test(s) ? s.replace(/y$/, 'ies') : s + 's';
+const first = l => { const o = String(l.ownerName || '').trim(); return o && !/[\d{}\[\]"@:\/]/.test(o) ? o.split(/\s+/)[0] : ''; };
+const money = n => (state.settings.cur || '$') + n;
+const hasPreview = (l, a) => !!l.previewUrl && (a.svc === 'site' || a.svc === 'fix');
+function footer(l){
+  const s = state.settings;
+  return [s.sender || '[your name]', s.company, s.address || '[your postal address]', 'Not interested? Reply "stop" and I will not email again.'].filter(Boolean).join('\n');
+}
+function factLine(l, a){
+  const mine = a.probs.filter(p => PROBLEMS[p].svc === a.svc), k = mine[0] || '';
+  const stars = (l.rating && l.reviews) ? ' (' + l.rating + ' stars from ' + l.reviews + ' reviews)' : '';
+  if (a.svc === 'fix' && mine.indexOf('down') >= 0) return 'I tried to open the ' + l.name + ' website and it would not load.';
+  if (a.svc === 'fix' && mine.length) {
+    const seen = { nomobile: 'it is hard to read on a small screen', nohttps: 'my browser marked it as not secure', slow: 'it took a long time to load' };
+    return 'I opened the ' + l.name + ' website on my phone and ' + mine.slice(0, 2).map(p => seen[p]).join(', and ') + '.';
+  }
+  if (k === 'nosite') return 'I found ' + l.name + ' on Google Maps' + stars + ', but I could not find a website for you.';
+  if (k === 'social') return 'I found ' + l.name + ' on Google Maps' + stars + ' and saw you have a ' + socialKind(l.website) + ' but no website of your own.';
+  if (k === 'noform') return 'I looked at the ' + l.name + ' website and could not find a quick way to ask for a quote or book.';
+  if (k === 'nowa') return 'I looked at the ' + l.name + ' website and could not find a WhatsApp button for customers to message you.';
+  if (k === 'lowrating') return 'I saw ' + l.name + ' has a ' + l.rating + ' rating on Google from ' + l.reviews + ' reviews.';
+  if (k === 'fewreviews') return 'I saw ' + l.name + ' has only ' + l.reviews + ' review' + (Number(l.reviews) === 1 ? '' : 's') + ' on Google.';
+  if (k === 'stale') return 'I saw ' + l.name + ' has not had a new Google review in a while.';
+  if (k === 'gbp') return 'I looked at the Google listing for ' + l.name + ' and some details are missing.';
+  if (k === 'brand') return 'I came across ' + l.name + ' on Google Maps and had an idea for a fresh logo for you.';
+  return 'I came across ' + l.name + ' on Google Maps' + stars + '.';
+}
+function pitchLine(l, a, short){
+  const s = state.settings, niche = plural(l.niche || s.niche || 'local business'), pv = hasPreview(l, a) ? l.previewUrl : '';
+  const price = money(s.setup) + ' setup and ' + money(s.price) + ' a month, hosting and updates included';
+  if (a.svc === 'site') {
+    if (pv) return 'I build websites for ' + niche + ', so I made a quick preview of how yours could look: ' + pv + '\n\n' + (short ? 'Would you like me to finish it for you?' : 'If you like it, I can have it live in 7 days for ' + price + '. Worth a quick chat?');
+    return 'I build websites for ' + niche + '. ' + (short ? 'Would you like me to send a free preview of how yours could look?' : 'Want me to put together a free preview for ' + l.name + '? There is no cost to look, and if you like it, I can have it live in 7 days for ' + price + '.');
+  }
+  if (a.svc === 'fix') return pv ? 'I fix this for ' + niche + ', so I made a quick preview of a cleaner version: ' + pv + '\n\nWould you like me to walk you through it?' : 'I fix this for ' + niche + '. Would you like me to send a short list of what I would change?';
+  if (a.svc === 'booking') return 'I set up simple quote and booking forms that send every request straight to your phone. Would you like to see an example?';
+  if (a.svc === 'wa') return 'I add a WhatsApp button and automatic replies so customers can reach you in one tap. Would you like to see how it works?';
+  if (a.svc === 'reviews') return 'I set up a simple system that asks every happy customer for a review automatically. Would you like to see how it works?';
+  if (a.svc === 'gbp') return 'I can complete it for you so more people find and call you. Would you like me to send what is missing?';
+  if (a.svc === 'brand') return 'I design logos and brand kits for small businesses. Would you like to see two quick concepts?';
+  return 'I help ' + niche + ' get more customers online. Would you be open to a quick idea?';
+}
+function template(l, n){
+  const s = state.settings, a = assess(l), short = channel(l) !== 'email';
+  const me = s.sender || '[your name]', who = first(l) || 'there', pv = hasPreview(l, a);
+  const topic = a.svc ? SERVICES[a.svc].topic(l) : 'an idea for ' + l.name;
+  const subject1 = pv ? 'A website preview for ' + l.name : topic.charAt(0).toUpperCase() + topic.slice(1);
+  let subject = n === 1 ? subject1 : n === 3 ? '' : 'Re: ' + subject1, body = '';
+  if (n === 1) {
+    body = 'Hi ' + who + (short ? ', this is ' + me + ' from ' + s.company + '.' : ',') + '\n\n' + factLine(l, a) + '\n\n' + pitchLine(l, a, short)
+      + (short ? '\n\nIf it is not for you, just say so and I will not message again.' : '');
+  } else if (n === 2) {
+    body = 'Hi ' + who + (short ? ', ' + me + ' here again. Just' : ',\n\nJust') + ' checking you saw my message about ' + topic + '. '
+      + (pv ? 'The preview is still here: ' + l.previewUrl : 'I am happy to send an example if you would like to see one.')
+      + (!short && s.booking ? '\n\nYou can also pick a time to talk here: ' + s.booking : '');
+  } else if (n === 3) {
+    const num = waNum(l) ? '+' + waNum(l) : (l.phone || '');
+    body = 'Call script for ' + l.name + (num ? ' (' + num + ')' : '') + '\n\n'
+      + '1. "Hi, is this the owner of ' + l.name + '? My name is ' + me + ' from ' + s.company + '."\n'
+      + '2. "I sent a message a few days ago about ' + topic + '. Did it reach you?"\n'
+      + '3. Say what you noticed: "' + factLine(l, a) + '"\n'
+      + '4. Ask: "' + (/^(reviews|gbp|brand)$/.test(a.svc) ? 'How do most new customers find you today?' : 'How do new customers find and book you today?') + '" Then listen.\n'
+      + '5. Offer: ' + (a.svc === 'site' ? '"I can have it live in 7 days for ' + money(s.setup) + ' setup and ' + money(s.price) + ' a month."' : 'say what you would set up, how long it takes and your price.') + '\n'
+      + '6. Close: ask where to send the details, or book a 10-minute call.\n\n'
+      + 'If they say no, thank them and mark the lead as lost. If they ask not to be contacted, mark Do not contact.';
+  } else {
+    body = 'Hi ' + who + (short ? ', last message from me about ' : ',\n\nLast note from me about ') + topic + '. '
+      + (pv ? 'I will take the preview down in a few days. If you would like it finished before then, reply here.' : 'If it is something you want later, reply here any time.')
+      + (short ? ' ' : '\n\n') + 'All the best with the business.';
+  }
+  if (n !== 3 && !short) body += '\n\n' + footer(l);
+  return { subject, body };
+}
+const getMsg = (l, n) => ((l.msgs || {})['m' + n]) || template(l, n);
+
+function aiPrompt(l){
+  const s = state.settings, a = assess(l), short = channel(l) !== 'email';
+  const probs = a.probs.map(k => probLabel(k, l));
+  return 'You write short cold outreach for a freelancer who fixes online problems for local businesses. Write 4 messages to one business.\n\n'
+    + 'Sender: ' + (s.sender || 'the freelancer') + ', ' + s.company + '.\n'
+    + 'Channel: ' + (short ? 'WhatsApp chat' : 'email') + '.\n'
+    + 'Business: ' + l.name + (l.category ? ', ' + l.category : '') + (l.city ? ' in ' + l.city : '') + '.\n'
+    + 'Google rating: ' + (l.rating || 'unknown') + ' from ' + (l.reviews || 'unknown') + ' reviews.\n'
+    + 'Website: ' + (a.hasSite ? l.website : l.website ? 'none, only ' + l.website : 'none found') + '.\n'
+    + 'Problems found: ' + (probs.length ? probs.join('; ') : 'none recorded') + '.\n'
+    + (l.finding ? 'Also noticed: ' + l.finding + '\n' : '')
+    + 'Service to offer: ' + (a.svc ? SERVICES[a.svc].name : 'a quick idea to get more customers online') + '.\n'
+    + (a.svc === 'site' ? 'Price: ' + money(s.setup) + ' setup and ' + money(s.price) + ' a month, hosting and updates included.\n' : '')
+    + 'Owner first name: ' + (first(l) || 'unknown, greet with "Hi there"') + '.\n'
+    + 'Preview site link: ' + (hasPreview(l, a) ? l.previewUrl : 'none. Do not mention a preview as already made; you may offer to make a free one') + '.\n'
+    + (s.booking && !short ? 'Booking link for message 2: ' + s.booking + '.\n' : '')
+    + '\nRules: plain text, friendly and direct, no hype, no exclamation marks, no emoji. Use only the facts above and never invent details about the business. Message 1 names exactly one problem, the one the service fixes, and ends with one simple question. '
+    + (short ? 'This is WhatsApp, so m1, m2 and m4 read like one person texting another and stay under 55 words each. m1 opens by saying who is writing and ends by saying they can tell you to stop. Do not mention price.' : 'Each email is under 90 words.')
+    + ' The call script m3 is under 120 words as short numbered lines. Do not add a signature, address or unsubscribe line' + (short ? '' : '; the tool adds them') + '.\n\n'
+    + 'Reply with only JSON in this shape: {"m1":{"subject":"","body":""},"m2":{"subject":"","body":""},"m3":{"body":""},"m4":{"subject":"","body":""}}. m1 is the day 1 intro, m2 the day 3 follow-up, m3 the day 5 phone call script, m4 the day 9 final note.';
+}
+
+/* ---------- preview site ---------- */
+function buildPreview(l){
+  const s = state.settings;
+  const city = l.city || '', place = [l.city, l.state].filter(Boolean).join(', ');
+  const headline = String(s.headline || '').replace(/\{city\}/g, city || 'your area');
+  const services = String(s.services || '').split('\n').map(x => x.trim()).filter(Boolean);
+  const css = '.pv{font-family:Georgia,"Times New Roman",serif;color:#12314D;background:#fff;line-height:1.5;margin:0}'
+    + '.pv *{box-sizing:border-box}.pv h1,.pv h2{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;line-height:1.1;margin:0}'
+    + '.pv-ribbon{background:#12314D;color:#fff;font:13px/1.4 "Segoe UI",system-ui,sans-serif;padding:8px 16px;text-align:center}'
+    + '.pv-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 24px;flex-wrap:wrap}'
+    + '.pv-logo{font:700 20px "Trebuchet MS","Segoe UI",system-ui,sans-serif}.pv-call{font:600 16px "Segoe UI",system-ui,sans-serif;color:#0E7C70}'
+    + '.pv-hero{padding:56px 24px 64px;background:linear-gradient(160deg,#E4F5F2 0%,#F7FBFA 60%)}'
+    + '.pv-hero p.loc{font:600 14px "Segoe UI",system-ui,sans-serif;color:#0E7C70;margin:0 0 10px}'
+    + '.pv-hero h1{font-size:clamp(30px,6vw,52px);max-width:14ch}.pv-hero p.lead{font-size:19px;margin:16px 0 26px;max-width:40ch}'
+    + '.pv-btn{display:inline-block;background:#0E7C70;color:#fff;font:600 16px "Segoe UI",system-ui,sans-serif;padding:13px 22px;border-radius:999px;border:0}'
+    + '.pv-sec{padding:44px 24px}.pv-sec h2{font-size:26px;margin-bottom:18px}'
+    + '.pv-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}'
+    + '.pv-list li{border:1px solid #CFE3DF;border-radius:10px;padding:14px 16px;font:500 16px "Segoe UI",system-ui,sans-serif}'
+    + '.pv-steps{margin:0;padding-left:22px;font-size:18px}.pv-steps li{margin-bottom:8px}'
+    + '.pv-form{background:#F2F8F7;border-radius:14px;padding:22px;max-width:460px;display:grid;gap:10px}'
+    + '.pv-form span{display:block;background:#fff;border:1px solid #CFE3DF;border-radius:8px;padding:11px 12px;color:#6B7F8C;font:15px "Segoe UI",system-ui,sans-serif}'
+    + '.pv-foot{background:#12314D;color:#D6E2EC;padding:26px 24px;font:14px/1.6 "Segoe UI",system-ui,sans-serif}';
+  const body = '<div class="pv">'
+    + '<div class="pv-ribbon">Unpublished preview made by ' + esc(s.company) + ' for ' + esc(l.name) + '. This is not a live website.</div>'
+    + '<div class="pv-top"><span class="pv-logo">' + esc(l.name) + '</span>' + (l.phone ? '<span class="pv-call">Call ' + esc(l.phone) + '</span>' : '') + '</div>'
+    + '<div class="pv-hero">' + (place ? '<p class="loc">' + esc(place) + '</p>' : '') + '<h1>' + esc(headline) + '</h1>'
+    + ((l.rating && l.reviews) ? '<p class="lead">Rated ' + esc(l.rating) + ' stars across ' + esc(l.reviews) + ' Google reviews.</p>' : '<p class="lead">Local, friendly and easy to book.</p>')
+    + '<span class="pv-btn">Get a free quote</span></div>'
+    + (services.length ? '<div class="pv-sec"><h2>What we do</h2><ul class="pv-list">' + services.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '')
+    + '<div class="pv-sec"><h2>How it works</h2><ol class="pv-steps"><li>Ask for a free quote.</li><li>Pick a day and time that suits you.</li><li>We take care of the rest.</li></ol></div>'
+    + '<div class="pv-sec"><h2>Ask for a free quote</h2><div class="pv-form"><span>Your name</span><span>Phone number</span><span>What do you need?</span><span class="pv-btn" style="text-align:center;color:#fff;background:#0E7C70;border:0">Send request</span></div></div>'
+    + '<div class="pv-foot"><strong>' + esc(l.name) + '</strong><br>' + [l.address, l.phone].filter(Boolean).map(esc).join('<br>') + '</div>'
+    + '</div>';
+  const html = '<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>' + esc(l.name) + ' (preview)</title><style>body{margin:0}' + css + '</style></head><body>' + body + '</body></html>';
+  return { css, body, html, file: slug(l.name + '-' + city) + '.html' };
+}
+
+/* ---------- import ---------- */
+const FIELDS = [
+  ['name', 'Business name', ['name', 'title', 'businessname', 'company', 'companyname', 'placename']],
+  ['category', 'Category', ['category', 'maincategory', 'categories', 'categoryname', 'type']],
+  ['phone', 'Phone', ['phone', 'phonenumber', 'telephone', 'phones', 'internationalphonenumber']],
+  ['waPhone', 'WhatsApp number', ['whatsappnumber', 'whatsappphone', 'whatsapp']],
+  ['address', 'Address', ['address', 'fulladdress', 'formattedaddress', 'street']],
+  ['city', 'City', ['city', 'locality', 'town']],
+  ['state', 'State', ['state', 'region', 'province']],
+  ['website', 'Website', ['website', 'websiteurl', 'site', 'web', 'domain']],
+  ['rating', 'Rating', ['rating', 'stars', 'averagerating', 'reviewrating', 'totalscore', 'avgrating']],
+  ['reviews', 'Review count', ['reviews', 'reviewcount', 'reviewscount', 'userratingstotal', 'numberofreviews', 'totalreviews', 'ratingcount']],
+  ['lastReview', 'Latest review date', ['latestreviewdate', 'lastreviewdate', 'latestreview', 'lastreview']],
+  ['placeId', 'Google place ID', ['placeid', 'googleplaceid', 'cid', 'googleid']],
+  ['email', 'Email', ['email', 'emails', 'emailaddress']],
+  ['ownerName', 'Owner name', ['ownername', 'contactname']],
+  ['social', 'Facebook or Instagram', ['facebook', 'instagram', 'facebookurl', 'instagramurl', 'social']],
+  ['finding', 'What was noticed', ['finding', 'observation']]
+];
+function parseTable(text){
+  text = String(text || '').replace(/^﻿/, '');
+  const head = text.split(/\r?\n/, 1)[0] || '';
+  const count = d => head.split(d).length;
+  const delim = count('\t') > count(',') ? '\t' : (count(';') > count(',') ? ';' : ',');
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"' && cur === '') q = true;
+    else if (c === delim) { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(x => String(x).trim() !== ''));
+}
+const normHead = h => String(h).toLowerCase().replace(/[^a-z0-9]/g, '');
+function guessMap(headers){
+  const norm = headers.map(normHead), map = {};
+  FIELDS.forEach(f => { let idx = -1; for (const syn of f[2]) { idx = norm.indexOf(syn); if (idx >= 0) break; } map[f[0]] = idx; });
+  return map;
+}
+const toISO = s => { s = String(s || '').trim(); if (!s) return ''; if (isISO(s.slice(0, 10))) return s.slice(0, 10); const t = Date.parse(s); if (isNaN(t)) return ''; const d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const dedupeKey = l => l.placeId ? 'p:' + l.placeId : 'n:' + String(l.name).toLowerCase().replace(/[^a-z0-9]/g, '') + '|' + String(l.phone || '').replace(/\D/g, '');
+function waFromLink(u){ const m = String(u || '').match(/(?:wa\.me\/|whatsapp\.com\/send\/?\?(?:[^#\s]*&)?phone=)\+?(\d{8,15})/i); return m ? '+' + m[1] : ''; }
+function readImport(){
+  const im = state.imp, out = { fresh: [], updates: [], dup: 0, noname: 0 };
+  if (!im.rows) return out;
+  const byKey = {}; Object.values(state.leads).forEach(l => { byKey[dedupeKey(l)] = l; });
+  const norm = im.headers.map(normHead);
+  const get = (r, f) => (im.map[f] >= 0 && r[im.map[f]] != null) ? String(r[im.map[f]]).trim() : '';
+  const raw = (r, name) => { const i = norm.indexOf(name); return i >= 0 && r[i] != null ? String(r[i]).trim() : ''; };
+  const base = Date.now().toString(36);
+  im.rows.slice(1).forEach((r, i) => {
+    const name = get(r, 'name'); if (!name) { out.noname++; return; }
+    const ratingRaw = get(r, 'rating').replace(',', '.').match(/\d+(\.\d+)?/);
+    const site = get(r, 'website'), social = get(r, 'social');
+    let waPhone = get(r, 'waPhone'), wa = raw(r, 'onwhatsapp').toLowerCase();
+    if (/^(yes|no)$/i.test(waPhone)) { wa = waPhone.toLowerCase(); waPhone = ''; }
+    if (wa !== 'yes' && wa !== 'no') wa = '';
+    waPhone = waPhone || waFromLink(site) || waFromLink(social);
+    if (waPhone) wa = 'yes';
+    let city = get(r, 'city'), st = get(r, 'state');
+    const ca = raw(r, 'completeaddress');
+    if (!city && ca.charAt(0) === '{') { try { const o = JSON.parse(ca); city = String(o.city || ''); st = st || String(o.state || ''); } catch (e) {} }
+    let owner = get(r, 'ownerName'); if (owner.charAt(0) === '{' || owner.toLowerCase() === name.toLowerCase()) owner = '';
+    const email = (get(r, 'email').match(/[^\s,;"'\[\]<>]+@[^\s,;"'\[\]<>]+\.[a-z]{2,}/i) || [''])[0];
+    const yn = k => raw(r, k).toLowerCase();
+    const audit = {}; let finding = get(r, 'finding');
+    if (/^http:\/\//i.test(site) && !yn('audithttps')) audit.nohttps = true;
+    if (yn('auditchecked') === 'yes' && yn('auditsite') === 'ok') {
+      audit.done = true;
+      if (yn('audithttps') === 'no') audit.nohttps = true;
+      if (yn('auditmobile') === 'no') audit.nomobile = true;
+      if (yn('auditform') === 'no') audit.noform = true;
+      if (yn('auditwhatsappbutton') === 'no') audit.nowa = true;
+      if (yn('auditslow') === 'yes') audit.slow = true;
+    } else if (yn('auditsite') === 'unreachable' && !finding) finding = 'Their website did not load when it was checked.';
+    const l = {
+      id: 'L' + base + i.toString(36), name, category: get(r, 'category'), phone: get(r, 'phone'), waPhone, wa, address: get(r, 'address'),
+      city: city || im.city.trim(), state: st || im.st.trim(), website: site, social,
+      rating: ratingRaw ? Number(ratingRaw[0]) : '', reviews: Number(get(r, 'reviews').replace(/\D/g, '')) || 0,
+      lastReview: toISO(get(r, 'lastReview')), placeId: get(r, 'placeId'), email, emailVerified: false,
+      ownerName: owner, niche: im.niche.trim(), status: 'new', createdAt: todayISO(), note: '', finding, previewUrl: '', audit
+    };
+    const k = dedupeKey(l), ex = byKey[k];
+    if (ex && ex.id.indexOf('L' + base) !== 0) {
+      const p = {};
+      if (audit.done && !(ex.audit || {}).done) p.audit = audit;
+      if (waPhone && !ex.waPhone) { p.waPhone = waPhone; p.wa = 'yes'; } else if (wa && !ex.wa) p.wa = wa;
+      if (finding && !ex.finding) p.finding = finding;
+      if (site && !ex.website) p.website = site;
+      if (email && !ex.email) p.email = email;
+      if (Object.keys(p).length) out.updates.push({ id: ex.id, patch: p }); else out.dup++;
+      return;
+    }
+    if (ex) { out.dup++; return; }
+    byKey[k] = l; out.fresh.push(l);
+  });
+  return out;
+}
+function exampleRows(){
+  const d = addDays(todayISO(), -12);
+  return 'name,category,phone,address,city,state,website,rating,reviews,latest review date,place id,whatsapp_number,audit_checked,audit_site,audit_https,audit_mobile,audit_form,audit_whatsapp_button,finding\n'
+    + 'Example Sparkle Cleaning,House cleaning service,(918) 555-0142,"120 Example Ave, Tulsa, OK",Tulsa,OK,,4.8,86,' + d + ',example-1,+19185550142,,,,,,,\n'
+    + 'Example Fresh Start Maids,Cleaning service,(918) 555-0177,"88 Sample St, Tulsa, OK",Tulsa,OK,https://www.facebook.com/examplefreshstart,4.5,41,' + d + ',example-2,,,,,,,,\n'
+    + 'Example Bright Office Care,Commercial cleaning service,(918) 555-0119,"5 Demo Rd, Tulsa, OK",Tulsa,OK,http://examplebrightoffice.com,4.6,133,,example-3,+19185550119,yes,ok,no,no,yes,no,The quote page still shows prices from two years ago.\n'
+    + 'Example Quick Shine,Cleaning service,(918) 555-0163,"9 Test Ln, Tulsa, OK",Tulsa,OK,https://examplequickshine.com,3.9,58,' + d + ',example-5,,yes,ok,yes,yes,yes,yes,\n'
+    + 'Example Mega Clean Co,Cleaning service,(918) 555-0100,"1 Test Blvd, Tulsa, OK",Tulsa,OK,https://examplemegaclean.com,4.9,640,,example-4,,,,,,,,\n';
+}
+
+/* ---------- shared pieces ---------- */
+function stamp(a){ const label = a.tier === 'X' ? '–' : a.tier === 'P' ? '?' : a.tier; const tip = a.tier === 'X' ? 'Excluded: ' + a.why : a.tier === 'P' ? 'Audit the website to score this lead' : 'Tier ' + a.tier + ', score ' + a.score + ' of 9'; return '<div class="stamp t' + a.tier + '" title="' + esc(tip) + '"><b>' + label + '</b><span>' + a.score + '/9</span></div>'; }
+function signals(l, a){
+  const chip = (on, t) => '<li class="' + (on ? 'on' : '') + '">' + esc(t) + '</li>';
+  const mine = a.probs.find(p => PROBLEMS[p].svc === a.svc) || a.probs[0];
+  const more = a.probs.length - 1;
+  const need = mine ? probLabel(mine, l) + (more > 0 ? ', and ' + more + ' more' : '') : a.svc ? 'Your pick' : a.bucket === 'unaudited' ? 'Website not audited' : 'No problem found';
+  return '<ul class="signals">' + chip(a.sig.need > 0, need) + chip(a.sig.reviews > 0, (Number(l.reviews) || 0) + ' reviews') + chip(a.sig.rating > 0, l.rating ? l.rating + ' stars' : 'No rating') + chip(a.sig.recent > 0, a.recent ? 'Reviewed in last 90 days' : 'No recent review on file')
+    + (a.svc ? '<li class="offer">Offer: ' + esc(SERVICES[a.svc].name) + '</li>' : '') + '</ul>';
+}
+const where = l => [l.category, [l.city, l.state].filter(Boolean).join(', ')].filter(Boolean).join(' in ');
+function leadCard(l, a, extra, acts){
+  return '<article class="lead" data-id="' + esc(l.id) + '">' + stamp(a)
+    + '<div><h3><button class="linklike" data-act="open">' + esc(l.name) + '</button>' + (l.wa === 'yes' ? ' <span class="badge wa">WhatsApp</span>' : '') + '</h3><p class="where">' + esc(where(l)) + '</p>' + (extra || signals(l, a)) + '</div>'
+    + '<div class="acts">' + (acts || '') + '</div></article>';
+}
+function dueText(l, st){ const late = daysBetween(st.due, todayISO()); return '<p class="due' + (late > 0 ? ' late' : '') + '">' + TOUCH[st.n].label + (late > 0 ? ', ' + late + (late === 1 ? ' day' : ' days') + ' late' : late === 0 ? ', due today' : ', due ' + nice(st.due)) + ' by ' + (st.n === 3 ? 'phone' : channelName(l)) + '</p>'; }
+function waSendBtn(l, n){
+  const again = !!state.opened[l.id];
+  return '<a class="btn small' + (again ? '' : ' primary') + '" data-act="wa-go" href="' + esc(waUrl(l, getMsg(l, n).body)) + '" target="_blank" rel="noopener noreferrer">' + (again ? 'Open WhatsApp again' : 'Send on WhatsApp') + '</a>';
+}
+
+/* ---------- views ---------- */
+function computeAll(){ return Object.values(state.leads).map(l => { const a = assess(l); return { l, a, st: nextStep(l, a) }; }); }
+const byScore = (p, q) => q.a.score - p.a.score || (Number(q.l.reviews) || 0) - (Number(p.l.reviews) || 0);
+
+function freshCard(x){
+  const l = x.l, a = x.a, ch = channel(l), needPv = a.tier === 'A' && !l.previewUrl && (a.svc === 'site' || a.svc === 'fix');
+  return leadCard(l, a, '', (needPv ? '<button class="btn small" data-act="open" data-tab="preview">Make preview</button>' : '')
+    + (ch === 'wa' ? waSendBtn(l, 1) + '<button class="btn small" data-act="open" data-tab="message">Edit message</button>' : '<button class="btn small" data-act="open" data-tab="message">Write message</button>')
+    + '<button class="btn small' + (ch !== 'wa' || state.opened[l.id] ? ' primary' : '') + '" data-act="sent">Mark day 1 sent</button>');
+}
+function followCard(x){
+  const l = x.l, n = x.st.n, ch = channel(l);
+  return leadCard(l, x.a, dueText(l, x.st), (n === 3 ? '<button class="btn small" data-act="open" data-tab="message">Open call script</button>'
+    : ch === 'wa' ? waSendBtn(l, n) : '<button class="btn small" data-act="open" data-tab="message">Open message</button>')
+    + '<button class="btn small' + (n === 3 || ch !== 'wa' || state.opened[l.id] ? ' primary' : '') + '" data-act="sent">' + (n === 3 ? 'Mark called' : 'Mark sent') + '</button><button class="btn small" data-act="replied">They replied</button>');
+}
+function checkCard(x){
+  const l = x.l, k = numKind(l);
+  return leadCard(l, x.a, '<p class="where"><span class="num">+' + esc(waNum(l)) + '</span>' + (k === 'mobile' ? ' Mobile number, likely on WhatsApp.' : k === 'landline' ? ' Landline, unlikely on WhatsApp.' : '') + '</p>',
+    '<a class="btn small primary" href="' + esc(waUrl(l)) + '" target="_blank" rel="noopener noreferrer">Check on WhatsApp</a><button class="btn small" data-act="wa-set" data-v="yes">On WhatsApp</button><button class="btn small" data-act="wa-set" data-v="no">Not on WhatsApp</button>');
+}
+
+function viewToday(){
+  const all = computeAll(), today = todayISO(), cap = Number(state.settings.cap) || 30, waMode = state.settings.chan === 'wa';
+  const contacted = all.filter(x => x.l.t1).length, replied = all.filter(x => x.l.repliedAt).length;
+  let gate;
+  if (contacted < 50) gate = '<div class="gate"><p><strong>Hand test: ' + contacted + ' of 50 leads contacted, ' + replied + (replied === 1 ? ' reply' : ' replies') + ' so far.</strong> Gate 1 needs 2 replies before you automate anything.</p><div class="meter"><i style="width:' + Math.round(contacted / 50 * 100) + '%"></i></div></div>';
+  else if (replied >= 2) gate = '<div class="gate pass"><p><strong>Gate 1 passed: ' + replied + ' replies from ' + contacted + ' leads.</strong> The message works, so automation can start.</p></div>';
+  else gate = '<div class="gate fail"><p><strong>Gate 1 not passed: ' + replied + (replied === 1 ? ' reply' : ' replies') + ' from ' + contacted + ' leads.</strong> Rewrite the message or the offer and test another 50.</p></div>';
+
+  const replies = all.filter(x => x.l.status === 'replied' || x.l.status === 'booked');
+  const follow = all.filter(x => x.l.status === 'contacted' && x.st && x.st.due <= today).sort((p, q) => p.st.due < q.st.due ? -1 : 1);
+  const sentToday = all.filter(x => x.l.t1 === today).length, room = Math.max(0, cap - sentToday);
+  const freshAll = all.filter(x => x.l.status === 'new' && x.st && !suppressed(x.l)).sort(byScore);
+  const rank = l => ({ mobile: 2, '': 1, landline: 0 })[numKind(l)];
+  const toCheck = waMode ? freshAll.filter(x => !x.l.wa && waNum(x.l)).sort((p, q) => rank(q.l) - rank(p.l) || byScore(p, q)) : [];
+  const waReady = freshAll.filter(x => x.l.wa === 'yes' && waNum(x.l));
+  const others = freshAll.filter(x => waReady.indexOf(x) < 0 && toCheck.indexOf(x) < 0);
+  const tab = !waMode ? 'all' : state.todayTab === 'other' ? 'other' : 'wa';
+  const pool = tab === 'wa' ? waReady : tab === 'other' ? others : freshAll;
+  const fresh = pool.slice(0, room);
+  const audits = all.filter(x => x.l.status === 'new' && x.a.bucket === 'unaudited' && !x.a.why).sort(byScore).slice(0, 8);
+  const done = all.filter(x => x.l.status === 'contacted' && !x.st && x.l.t4 && daysBetween(x.l.t4, today) >= 5);
+  const down = all.filter(x => x.l.previewUrl && x.l.status !== 'won' && lastTouch(x.l) && daysBetween(lastTouch(x.l), today) >= 14);
+
+  const sec = (title, n, hint, body) => '<section class="block"><header><h2>' + title + '</h2><span class="count">' + n + '</span>' + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</header>' + body + '</section>';
+  let h = '<div class="head"><h1>Today</h1><p class="sub">' + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + '</p></div>' + gate;
+
+  if (!all.length) return h + '<div class="empty"><p>No leads yet. Bring in a list from your Google Maps extractor to fill this page.</p><div class="row"><button class="btn primary" data-act="nav" data-view="import">Import leads</button></div></div>';
+
+  if (!state.settings.sender) h += '<div class="callout">Add your name in Settings before you send anything. Until then your messages say [your name].</div>';
+
+  if (replies.length) h += sec('Replies to handle', replies.length, '', replies.map(x => leadCard(x.l, x.a, '<p class="due"><span class="badge s-' + x.l.status + '">' + STATUS[x.l.status] + '</span></p>',
+    (x.l.status === 'replied' ? '<button class="btn small" data-act="booked">Call booked</button>' : '') + '<button class="btn small primary" data-act="won">Mark as client</button><button class="btn small" data-act="lost">Lost</button>')).join(''));
+
+  h += sec('Follow-ups due', follow.length, '', follow.length ? follow.map(followCard).join('') : '<div class="empty">Nothing due. Follow-ups appear here 2, 4 and 8 days after the first message.</div>');
+
+  const pills = waMode ? '<div class="pills"><button aria-pressed="' + (tab === 'wa') + '" data-act="today-tab" data-v="wa">On WhatsApp (' + waReady.length + ')</button><button aria-pressed="' + (tab === 'other') + '" data-act="today-tab" data-v="other">Not on WhatsApp (' + others.length + ')</button></div>' : '';
+  const none = room === 0 && pool.length ? 'Daily limit reached. ' + pool.length + ' more leads are waiting for tomorrow.'
+    : tab === 'wa' ? (toCheck.length ? 'No confirmed WhatsApp leads yet. Check the numbers in the next section.' : 'No WhatsApp leads waiting. Import more leads.')
+    : tab === 'other' ? 'No leads here. Leads you mark as not on WhatsApp appear in this list for email, calls or DMs.'
+    : 'No Tier A or B leads waiting. Import more, or audit the websites below.';
+  h += sec(waMode ? 'New leads to message' : 'New leads to contact', fresh.length, sentToday + ' of ' + cap + ' first messages sent today', pills + (fresh.length ? fresh.map(freshCard).join('') : '<div class="empty">' + none + '</div>'));
+
+  if (toCheck.length) h += sec('Check these numbers on WhatsApp', toCheck.length, 'If a chat opens, the number is on WhatsApp',
+    toCheck.slice(0, 10).map(checkCard).join('') + (toCheck.length > 10 ? '<p class="note">Showing the first 10. The rest appear as you work through them.</p>' : ''));
+
+  if (audits.length) h += sec('Websites to audit', audits.length, 'Tick what you find, then save', audits.map(x => leadCard(x.l, x.a,
+    '<p class="where">' + esc(x.l.website) + '</p><div class="auditline">' + Object.keys(AUDIT).map(k => '<label><input type="checkbox" data-k="' + k + '"' + ((x.l.audit || {})[k] ? ' checked' : '') + '> ' + AUDIT[k] + '</label>').join('') + '</div>',
+    '<button class="btn small primary" data-act="audit-save">Save audit</button>')).join(''));
+
+  if (done.length) h += sec('Sequence finished, no reply', done.length, '', done.map(x => leadCard(x.l, x.a, '<p class="due">Last message ' + nice(x.l.t4) + '</p>', '<button class="btn small" data-act="replied">They replied</button><button class="btn small" data-act="lost">Mark lost</button>')).join(''));
+  if (down.length) h += sec('Previews to take down', down.length, '14 days since the last message', down.map(x => leadCard(x.l, x.a, '<p class="where">' + esc(x.l.previewUrl) + '</p>', '<button class="btn small" data-act="takedown">Preview taken down</button>')).join(''));
+  return h;
+}
+
+function filtered(){
+  const f = state.filter, q = f.q.trim().toLowerCase();
+  return computeAll().filter(x => (f.tier === 'all' || x.a.tier === f.tier) && (f.status === 'all' || x.l.status === f.status) && (f.wa === 'all' || (x.l.wa || 'none') === f.wa) && (f.svc === 'all' || x.a.svc === f.svc)
+    && (!q || (x.l.name + ' ' + (x.l.city || '') + ' ' + (x.l.phone || '') + ' ' + (x.l.email || '')).toLowerCase().includes(q)))
+    .sort((p, q2) => q2.a.score - p.a.score || String(p.l.name).localeCompare(String(q2.l.name)));
+}
+function leadList(){
+  const list = filtered();
+  if (!list.length) return '<div class="empty">No leads match these filters.</div>';
+  return '<p class="note" style="margin-bottom:8px">' + list.length + (list.length === 1 ? ' lead' : ' leads') + '</p>' + list.slice(0, state.shown).map(x => leadCard(x.l, x.a,
+    signals(x.l, x.a) + '<p class="due"><span class="badge s-' + x.l.status + '">' + STATUS[x.l.status] + '</span>' + (x.a.tier === 'X' ? ' <span class="note">Excluded: ' + esc(x.a.why) + '</span>' : x.st && x.l.status === 'contacted' ? ' <span class="note">Next: ' + TOUCH[x.st.n].label + ' on ' + nice(x.st.due) + '</span>' : '') + '</p>',
+    '<button class="btn small" data-act="open">Open</button>')).join('')
+    + (list.length > state.shown ? '<div class="row"><button class="btn" data-act="more">Show 100 more</button></div>' : '');
+}
+function viewLeads(){
+  const f = state.filter;
+  return '<div class="head"><h1>Leads</h1><p class="sub">Every business you have imported, best score first.</p></div>'
+    + '<div class="toolbar"><input type="search" id="q" placeholder="Search name, city, phone or email" value="' + esc(f.q) + '" data-inp="q" aria-label="Search leads">'
+    + '<select id="f-tier" data-chg="f-tier" aria-label="Tier">' + opt('all', 'All tiers', f.tier) + opt('A', 'Tier A', f.tier) + opt('B', 'Tier B', f.tier) + opt('C', 'Tier C', f.tier) + opt('P', 'Needs audit', f.tier) + opt('X', 'Excluded', f.tier) + '</select>'
+    + '<select id="f-svc" data-chg="f-svc" aria-label="Offer">' + opt('all', 'All offers', f.svc) + Object.keys(SERVICES).map(k => opt(k, SERVICES[k].name, f.svc)).join('') + '</select>'
+    + '<select id="f-status" data-chg="f-status" aria-label="Status">' + opt('all', 'All statuses', f.status) + Object.keys(STATUS).map(k => opt(k, STATUS[k], f.status)).join('') + '</select>'
+    + '<select id="f-wa" data-chg="f-wa" aria-label="WhatsApp">' + opt('all', 'WhatsApp: any', f.wa) + opt('yes', 'On WhatsApp', f.wa) + opt('no', 'Not on WhatsApp', f.wa) + opt('none', 'WhatsApp not checked', f.wa) + '</select>'
+    + '<button class="btn" data-act="export">Export CSV</button></div><div id="lead-list">' + leadList() + '</div>';
+}
+
+function viewImport(){
+  const im = state.imp;
+  let h = '<div class="head"><h1>Import leads</h1><p class="sub">Paste or choose the CSV from your find-leads command or any Google Maps extractor. The first row must be the column names. Audit results and WhatsApp numbers in the file are read automatically.</p></div>'
+    + '<div class="panel"><label class="f"><span>Paste CSV or spreadsheet rows</span><textarea id="imp-text" rows="7" data-inp="imp-text" placeholder="name,phone,website,rating,reviews,...">' + esc(im.text) + '</textarea></label>'
+    + '<label class="f"><span>What kind of business is in this file?</span><input type="text" id="imp-niche" data-inp="imp-niche" value="' + esc(im.niche) + '" placeholder="' + esc(state.settings.niche || 'beauty salon') + '"><small>One kind, singular, for example: beauty salon. Your messages then say "I build websites for beauty salons".</small></label>'
+    + '<div class="grid2"><label class="f"><span>City, if the file has no city column</span><input type="text" id="imp-city" data-inp="imp-city" value="' + esc(im.city) + '" placeholder="Tulsa"></label>'
+    + '<label class="f"><span>State</span><input type="text" id="imp-st" data-inp="imp-st" value="' + esc(im.st) + '" placeholder="OK"></label></div>'
+    + '<div class="row"><button class="btn primary" data-act="parse">Read these rows</button><label class="btn" style="cursor:pointer">Choose a CSV file<input type="file" id="imp-file" accept=".csv,.tsv,.txt,text/csv" data-chg="file" hidden></label><button class="btn" data-act="example">Insert example rows</button></div>'
+    + (im.msg ? '<p class="note" style="margin-top:10px">' + esc(im.msg) + '</p>' : '') + '</div>';
+  if (im.rows) {
+    const r = readImport(), tally = { A: 0, B: 0, C: 0, P: 0, X: 0 };
+    r.fresh.forEach(l => { tally[assess(l).tier]++; });
+    const onWa = r.fresh.filter(l => l.wa === 'yes').length, audited = r.fresh.filter(l => l.audit.done).length, total = r.fresh.length + r.updates.length;
+    h += '<div class="panel"><h2>Match the columns</h2><p class="note" style="margin-bottom:12px">Found ' + (im.rows.length - 1) + ' rows. Check each field points at the right column.</p><div class="grid2">'
+      + FIELDS.map(f => '<label class="f"><span>' + f[1] + '</span><select id="map-' + f[0] + '" data-chg="map" data-f="' + f[0] + '"><option value="-1">Not in this file</option>' + im.headers.map((hd, i) => '<option value="' + i + '"' + (im.map[f[0]] === i ? ' selected' : '') + '>' + esc(hd) + '</option>').join('') + '</select></label>').join('')
+      + '</div></div><div class="panel"><h2>Ready to import</h2><p>' + r.fresh.length + (r.fresh.length === 1 ? ' new lead' : ' new leads') + (r.updates.length ? ', ' + r.updates.length + (r.updates.length === 1 ? ' stored lead gets' : ' stored leads get') + ' new details' : '') + (r.dup ? ', ' + r.dup + ' already stored' : '') + (r.noname ? ', ' + r.noname + ' rows skipped for having no name' : '') + '.</p>'
+      + (r.fresh.length ? '<p class="note" style="margin-top:6px">Tier A: ' + tally.A + '. Tier B: ' + tally.B + '. Tier C: ' + tally.C + '. Needs a website audit: ' + tally.P + '. Excluded: ' + tally.X + '.</p>'
+        + '<p class="note">' + onWa + ' with a WhatsApp number found. ' + audited + ' with a website already audited.</p>' : '')
+      + '<div class="row"><button class="btn primary" data-act="do-import"' + (total ? '' : ' disabled') + '>' + (r.fresh.length || !r.updates.length ? 'Import ' + r.fresh.length + (r.fresh.length === 1 ? ' lead' : ' leads') : 'Update ' + r.updates.length + (r.updates.length === 1 ? ' lead' : ' leads')) + '</button></div></div>';
+  }
+  return h;
+}
+
+function viewResults(){
+  const all = computeAll(), today = todayISO(), within = (d, n) => isISO(d) && daysBetween(d, today) <= n && daysBetween(d, today) >= 0;
+  const qualified = all.filter(x => x.a.tier === 'A' || x.a.tier === 'B');
+  const contacted = all.filter(x => x.l.t1), replied = all.filter(x => x.l.repliedAt), booked = all.filter(x => x.l.bookedAt || x.l.status === 'won'), won = all.filter(x => x.l.status === 'won');
+  const mrr = won.reduce((s, x) => s + (Number(x.l.mrr) || 0), 0);
+  const pct = (a, b) => b ? (a / b * 100).toFixed(1).replace(/\.0$/, '') + '%' : 'No data yet';
+  const stat = (v, t) => '<div class="stat"><b>' + v + '</b><span>' + t + '</span></div>';
+  const bar = (t, n) => '<div><span>' + t + '</span><i style="width:' + (contacted.length ? Math.max(1, n / contacted.length * 100) : 0) + '%"></i><span>' + n + '</span></div>';
+  const rows = [
+    ['Qualified leads added, last 7 days', qualified.filter(x => within(x.l.createdAt, 7)).length, '150'],
+    ['Leads contacted, last 30 days', contacted.filter(x => within(x.l.t1, 30)).length, '600'],
+    ['Reply rate', pct(replied.length, contacted.length), '3 to 8%'],
+    ['Close rate on replies', pct(won.length, replied.length), '10 to 20%'],
+    ['New clients, last 30 days', won.filter(x => within(x.l.wonAt, 30)).length, '3 to 6']
+  ];
+  const by = {};
+  contacted.forEach(x => { const k = SERVICES[x.l.pitched] ? x.l.pitched : SERVICES[x.a.svc] ? x.a.svc : ''; const o = by[k] = by[k] || { c: 0, r: 0, w: 0 }; o.c++; if (x.l.repliedAt) o.r++; if (x.l.status === 'won') o.w++; });
+  const byRows = Object.keys(by).sort((p, q) => by[q].c - by[p].c).map(k => '<tr><td>' + esc(k ? SERVICES[k].name : 'Other') + '</td><td class="num">' + by[k].c + '</td><td class="num">' + by[k].r + '</td><td class="num">' + pct(by[k].r, by[k].c) + '</td><td class="num">' + by[k].w + '</td></tr>').join('');
+  return '<div class="head"><h1>Results</h1><p class="sub">How the engine is doing against the targets in the PRD.</p></div>'
+    + '<div class="stats">' + stat(all.length, 'Leads stored') + stat(qualified.length, 'Tier A and B') + stat(contacted.length, 'Contacted') + stat(replied.length, 'Replies') + stat(won.length, 'Clients') + stat(esc(money(mrr)), 'Monthly recurring') + '</div>'
+    + '<div class="panel"><h2>From first message to client</h2>' + (contacted.length ? '<div class="funnel">' + bar('Contacted', contacted.length) + bar('Replied', replied.length) + bar('Call booked', booked.length) + bar('Client', won.length) + '</div>' : '<p class="note">Mark a first message as sent and the funnel appears here.</p>') + '</div>'
+    + '<div class="panel"><h2>Which offer gets replies</h2>' + (byRows ? '<div class="scroll"><table><thead><tr><th>Offer</th><th>Messaged</th><th>Replies</th><th>Reply rate</th><th>Clients</th></tr></thead><tbody>' + byRows + '</tbody></table></div>' : '<p class="note">Once you send first messages, this shows which offer people answer.</p>') + '</div>'
+    + '<div class="panel"><h2>Against target</h2><div class="scroll"><table><thead><tr><th>Measure</th><th>Now</th><th>Target</th></tr></thead><tbody>' + rows.map(r => '<tr><td>' + r[0] + '</td><td class="num">' + r[1] + '</td><td class="num">' + r[2] + '</td></tr>').join('') + '</tbody></table></div></div>';
+}
+
+function viewSettings(){
+  const s = state.settings, off = offered(), f = (k, label, type, hint, ph) => '<label class="f"><span>' + label + '</span><input type="' + (type || 'text') + '" id="set-' + k + '" data-chg="set" data-f="' + k + '" value="' + esc(s[k]) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>' + (hint ? '<small>' + hint + '</small>' : '') + '</label>';
+  const where2 = state.mode === 'api' ? 'Leads are saved in your own database and open on any device after you sign in.' : state.mode === 'cloud' ? 'Leads are saved with this page and stay when you reload or switch device.' : state.mode === 'local' ? 'Leads are saved in this browser only.' : 'Saving is not available in this view. Leads are lost when you close the page.';
+  return '<div class="head"><h1>Settings</h1><p class="sub">These details fill your messages and preview sites.</p></div>'
+    + '<div class="panel"><h2>How you reach people</h2><div class="grid2">'
+    + '<label class="f"><span>Main channel</span><select id="set-chan" data-chg="set" data-f="chan">' + opt('wa', 'WhatsApp', s.chan) + opt('email', 'Email', s.chan) + '</select><small>WhatsApp puts only confirmed WhatsApp numbers in your daily list.</small></label>'
+    + f('cc', 'Country code for phone numbers', 'text', '234 for Nigeria, 44 for the UK, 1 for the US and Canada.')
+    + f('cap', 'First messages per day', 'number', 'On WhatsApp, start at 10 to 15 a day so your number is not reported.') + f('sender', 'Your name', 'text', '', 'Petros') + '</div></div>'
+    + '<div class="panel"><h2>What you offer</h2><p class="note" style="margin-bottom:10px">A lead only counts when it has a problem one of these fixes.</p>'
+    + Object.keys(SERVICES).map(k => '<label class="c"><input type="checkbox" id="offer-' + k + '" data-chg="offer" data-k="' + k + '"' + (off[k] ? ' checked' : '') + '> ' + SERVICES[k].name + '</label>').join('')
+    + '<div class="grid2" style="margin-top:12px">' + f('company', 'Company') + f('niche', 'Who you sell to', 'text', 'Singular, for example: cleaning company') + f('cur', 'Currency symbol', 'text', '', '$') + f('setup', 'Website setup fee', 'number') + f('price', 'Website monthly price', 'number') + '</div>'
+    + f('address', 'Postal address for the email footer', 'text', 'US email rules require a valid postal address in every cold email.') + f('booking', 'Call booking link', 'url', '', 'https://') + '</div>'
+    + '<div class="panel"><h2>Preview sites</h2>' + f('headline', 'Headline', 'text', 'Use {city} where the city name should go.')
+    + '<label class="f"><span>Services, one per line</span><textarea id="set-services" rows="5" data-chg="set" data-f="services">' + esc(s.services) + '</textarea></label>'
+    + f('previewBase', 'Where you host previews', 'url', 'Optional. The tool suggests a link for each preview from this address.', 'https://previews.example.com/') + '</div>'
+    + (state.mode === 'api' ? '<div class="panel"><h2>Sign-in</h2><div class="grid2"><label class="f"><span>Current password</span><input type="password" id="pw-cur" autocomplete="current-password"></label><label class="f"><span>New password</span><input type="password" id="pw-new" autocomplete="new-password"><small>At least 10 characters.</small></label></div><div class="row" style="margin-top:0"><button class="btn" data-act="change-pw">Change password</button><button class="btn" data-act="sign-out">Sign out</button></div></div>' : '')
+    + '<div class="panel"><h2>Your data</h2><p class="note">' + where2 + '</p><div class="row"><button class="btn warn" data-act="clear" data-confirm="Click again to delete every lead">Delete all leads</button></div></div>';
+}
+
+/* ---------- drawer ---------- */
+function drawerHead(l, a){
+  const st = nextStep(l, a);
+  return stamp(a) + '<div><h2>' + esc(l.name) + '</h2><p class="where note">' + esc(where(l)) + '</p>' + signals(l, a)
+    + '<p class="due" style="margin-top:8px"><span class="badge s-' + l.status + '">' + STATUS[l.status] + '</span> ' + (a.tier === 'X' ? '<span class="note">Excluded: ' + esc(a.why) + '</span>' : st ? '<span class="note">Next: ' + TOUCH[st.n].label + (l.status === 'contacted' ? ' on ' + nice(st.due) : '') + '</span>' : '') + '</p></div>'
+    + '<button class="btn small" data-act="close" aria-label="Close">Close</button>';
+}
+function renderDrawer(){
+  const layer = $('#layer'), d = state.drawer;
+  if (!d || !state.leads[d.id]) { layer.innerHTML = ''; state.drawer = null; return; }
+  const l = state.leads[d.id], a = assess(l), s = state.settings, off = offered();
+  const old = $('.sheet'), keepTop = old && old.dataset.id === d.id && old.dataset.tab === d.tab ? old.scrollTop : 0;
+  const tab = (k, t) => '<button role="tab" aria-selected="' + (d.tab === k) + '" data-act="tab" data-tab="' + k + '">' + t + '</button>';
+  const fld = (k, label, type, extra) => '<label class="f"><span>' + label + '</span><input type="' + (type || 'text') + '" id="d-' + k + '" data-chg="field" data-f="' + k + '" value="' + esc(l[k]) + '"' + (extra || '') + '></label>';
+  const chk = (k, label) => '<label class="c"><input type="checkbox" id="d-' + k + '" data-chg="field" data-f="' + k + '"' + (l[k] ? ' checked' : '') + '> ' + label + '</label>';
+  let body = '';
+  if (d.tab === 'details') {
+    const st = nextStep(l, a), kind = numKind(l), link = /^https?:\/\//i.test(l.website || '') ? l.website : '';
+    body = '<div class="panel"><h2>Problems found</h2>'
+      + (a.probs.length ? '<ul class="probs">' + a.probs.map(k => '<li>' + esc(probLabel(k, l)) + '<span>' + esc(SERVICES[PROBLEMS[k].svc].name) + '</span></li>').join('') + '</ul>'
+        : '<p class="note">' + (a.bucket === 'unaudited' ? 'Nothing yet. Open their website on a phone and tick what you see.' : 'None found. Tick anything you notice, or pick a service to offer.') + '</p>')
+      + '<label class="f" style="margin-top:14px"><span>Service to offer</span><select id="d-svc" data-chg="svc"><option value="">' + esc(a.autoSvc ? 'Recommended: ' + SERVICES[a.autoSvc].name : 'None yet') + '</option>'
+      + Object.keys(SERVICES).filter(k => off[k]).map(k => opt(k, SERVICES[k].name, l.service || '')).join('') + '</select></label>'
+      + (a.hasSite ? '<h3 style="margin:6px 0 8px">Their website</h3>' + '<p class="note" style="margin-bottom:8px">Open the site on a phone and tick what you see. ' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + esc(link) + '</a>' : '') + '</p>'
+        + Object.keys(AUDIT).map(k => '<label class="c"><input type="checkbox" id="d-a-' + k + '" data-chg="audit" data-k="' + k + '"' + ((l.audit || {})[k] ? ' checked' : '') + '> ' + AUDIT[k] + '</label>').join('')
+        + (!(l.audit || {}).done ? '<div class="row" style="margin:4px 0 12px"><button class="btn small" data-act="audit-done">Audit done, no more problems</button></div>' : '') : '')
+      + '<h3 style="margin:10px 0 8px">Elsewhere</h3>' + Object.keys(OTHER).map(k => '<label class="c"><input type="checkbox" id="d-a-' + k + '" data-chg="flag" data-k="' + k + '"' + ((l.audit || {})[k] ? ' checked' : '') + '> ' + OTHER[k] + '</label>').join('')
+      + '<label class="f" style="margin-top:12px"><span>What else did you notice?</span><textarea id="d-finding" rows="2" data-chg="field" data-f="finding">' + esc(l.finding) + '</textarea><small>One plain sentence. Claude uses it when it personalises the message.</small></label></div>'
+      + '<div class="panel"><h2>Contact</h2><div class="grid2">' + fld('ownerName', 'Owner name') + fld('phone', 'Phone') + fld('waPhone', 'WhatsApp number, if different') + fld('email', 'Email', 'email') + fld('social', 'Facebook or Instagram') + '</div>'
+      + chk('emailVerified', 'This email is verified. Without it the lead is worked by WhatsApp, call or DM.')
+      + '<h3 style="margin:14px 0 8px">WhatsApp</h3>' + (waNum(l)
+        ? '<p class="note" style="margin-bottom:8px">' + (l.waPhone ? 'This number came from a WhatsApp link the business published. ' : kind === 'mobile' ? 'This is a mobile number, so it is likely on WhatsApp. ' : kind === 'landline' ? 'This looks like a landline, so it is unlikely to be on WhatsApp. ' : '') + 'Open the chat link. If WhatsApp says the number is not valid, it is not on WhatsApp.</p>'
+          + '<div class="row" style="margin-top:0"><a class="btn small" href="' + esc(waUrl(l)) + '" target="_blank" rel="noopener noreferrer">Check +' + esc(waNum(l)) + ' on WhatsApp</a><button class="btn small" data-act="copy-wa">Copy link</button></div>'
+          + '<div class="pills" style="margin:10px 0 0">' + [['yes', 'On WhatsApp'], ['no', 'Not on WhatsApp'], ['', 'Not checked']].map(o => '<button aria-pressed="' + ((l.wa || '') === o[0]) + '" data-act="wa-set" data-v="' + o[0] + '">' + o[1] + '</button>').join('') + '</div>'
+        : '<p class="note">Add a phone number to check WhatsApp.</p>') + '</div>'
+      + '<div class="panel"><h2>Scoring facts</h2><div class="grid2">' + fld('website', 'Website') + fld('category', 'Category') + fld('rating', 'Rating', 'number', ' step="0.1" min="0" max="5"') + fld('reviews', 'Review count', 'number', ' min="0"') + fld('lastReview', 'Latest review date', 'date') + fld('city', 'City') + fld('niche', 'Type of business, used in messages') + '</div>'
+      + chk('recentManual', 'Has a review from the last 90 days') + chk('franchise', 'Part of a franchise (excluded)') + '</div>'
+      + '<div class="panel"><h2>Progress</h2><div class="row" style="margin-top:0">'
+      + (st ? '<button class="btn primary" data-act="sent">Mark ' + TOUCH[st.n].label.toLowerCase() + (st.n === 3 ? ' done' : ' sent') + '</button>' : '')
+      + (l.status === 'contacted' ? '<button class="btn" data-act="replied">They replied</button>' : '')
+      + (l.status === 'replied' ? '<button class="btn" data-act="booked">Call booked</button>' : '')
+      + (l.status === 'replied' || l.status === 'booked' ? '<button class="btn primary" data-act="won">Mark as client</button>' : '')
+      + (['contacted', 'replied', 'booked'].includes(l.status) ? '<button class="btn" data-act="lost">Lost</button>' : '')
+      + (['won', 'lost', 'unsub', 'dnc'].includes(l.status) ? '<button class="btn" data-act="reopen">Reopen</button>' : '')
+      + (!suppressed(l) ? '<button class="btn warn" data-act="unsub">Unsubscribed</button><button class="btn warn" data-act="dnc">Do not contact</button>' : '')
+      + '</div>' + ([1, 2, 3, 4].some(n => l['t' + n]) ? '<p class="note" style="margin-top:10px">' + [1, 2, 3, 4].filter(n => l['t' + n]).map(n => TOUCH[n].label + (n === 3 ? ' done ' : ' sent ') + nice(l['t' + n])).join('. ') + '.</p>' : '')
+      + '<label class="f" style="margin-top:14px"><span>Notes</span><textarea id="d-note" rows="3" data-chg="field" data-f="note">' + esc(l.note) + '</textarea></label>'
+      + (suppressed(l) ? '<p class="note">This record is kept so the business is never contacted again.</p>' : '<div class="row"><button class="btn warn small" data-act="delete" data-confirm="Click again to delete">Delete lead</button></div>') + '</div>';
+  } else if (d.tab === 'message') {
+    const n = d.touch, m = getMsg(l, n), ch = channel(l), isEmail = ch === 'email' && n !== 3, st = nextStep(l, a), busy = state.busy === l.id;
+    body = '<div class="pills">' + [1, 2, 3, 4].map(k => '<button aria-pressed="' + (k === n) + '" class="' + (l['t' + k] ? 'done' : '') + '" data-act="touch" data-n="' + k + '">' + TOUCH[k].label + '</button>').join('') + '</div>'
+      + (suppressed(l) ? '<div class="callout">This business asked not to be contacted. Do not send anything.</div>' : '')
+      + (isEmail && !s.address ? '<div class="callout">Add your postal address in Settings. US email rules require it in every cold email.</div>' : '')
+      + (!s.sender ? '<div class="callout">Add your name in Settings so messages say who is writing.</div>' : '')
+      + '<p class="note" style="margin-bottom:10px">' + (a.svc ? 'Offer: ' + esc(SERVICES[a.svc].name) + '. ' : '')
+      + (n === 3 ? 'Call <span class="num">' + esc(waNum(l) ? '+' + waNum(l) : (l.phone || 'the business number')) + '</span> during their working hours.'
+        : ch === 'email' ? 'Send by email to ' + esc(l.email) + '.'
+        : ch === 'wa' ? 'Send on WhatsApp to <span class="num">+' + esc(waNum(l)) + '</span>. WhatsApp opens with the message typed in, and you press send.'
+        : 'Not confirmed on WhatsApp. Send as a DM' + (l.social ? ' at ' + esc(l.social) : '') + ' or call ' + esc(l.phone || 'the business') + '.') + '</p>'
+      + (isEmail ? '<label class="f"><span>Subject</span><input type="text" id="msg-subject" data-chg="msg" value="' + esc(m.subject || '') + '"></label>' : '')
+      + '<label class="f"><span>' + (n === 3 ? 'Call script' : 'Message') + '</span><textarea id="msg-body" rows="' + (n === 3 ? 13 : 10) + '" data-chg="msg" data-inp="msg-count">' + esc(m.body) + '</textarea><small id="msg-count">' + words(m.body) + ' words</small></label>'
+      + '<div class="row">' + (l.wa === 'yes' && n !== 3 && waNum(l) ? '<a class="btn' + (ch === 'wa' ? ' primary' : '') + '" id="wa-link" data-act="wa-go" href="' + esc(waUrl(l, m.body)) + '" target="_blank" rel="noopener noreferrer">Send on WhatsApp</a>' : '')
+      + '<button class="btn' + (ch === 'wa' && n !== 3 ? '' : ' primary') + '" data-act="copy-msg">Copy ' + (n === 3 ? 'script' : 'message') + '</button>'
+      + (state.sample ? (busy ? '<button class="btn" disabled>Writing…</button><button class="btn" data-act="stop-ai">Stop</button>' : '<button class="btn" data-act="write-ai">Personalise with Claude</button>') : '')
+      + ((l.msgs || {})['m' + n] ? '<button class="btn" data-act="reset-msg">Back to template</button>' : '')
+      + (st && st.n === n ? '<button class="btn" data-act="sent">' + (n === 3 ? 'Mark called' : 'Mark sent') + '</button>' : '') + '</div>'
+      + (state.sample ? '<p class="note" style="margin-top:10px">Personalise rewrites all four messages for this business and uses your ' + (state.mode === 'api' ? 'Anthropic API credit' : 'Claude plan') + '.</p>' : '');
+  } else {
+    const base = String(s.previewBase || '').trim(), pv = buildPreview(l), suggested = base ? base.replace(/\/?$/, '/') + pv.file : '';
+    body = '<p class="note">' + (a.svc !== 'site' && a.svc !== 'fix' ? 'Previews go with a website offer. This lead has a different offer, but you can still make one.' : a.tier === 'A' ? 'Tier A leads get a preview site with the first message.' : 'Previews are for Tier A leads. You can still make one for this lead.') + ' It shows only the name, city, rating and review count, with a label saying it is an unpublished sample.</p>'
+      + '<div class="pvframe" id="pv-host"></div>'
+      + '<div class="row">' + (store.api ? '<button class="btn primary" data-act="publish-pv">' + (l.previewUrl ? 'Publish again' : 'Publish preview') + '</button>' : '') + '<button class="btn' + (store.api ? '' : ' primary') + '" data-act="dl-preview">Download preview file</button></div>'
+      + '<label class="f" style="margin-top:16px"><span>Preview link</span><input type="url" id="pv-url" data-chg="field" data-f="previewUrl" value="' + esc(l.previewUrl) + '" placeholder="https://"><small>' + (store.api ? 'Publish fills this in. Your messages pick it up.' : 'Upload the file to your static host, then paste its link here. Your messages pick it up.') + '</small></label>'
+      + (!store.api && suggested && suggested !== l.previewUrl ? '<div class="row" style="margin-top:0"><button class="btn small" data-act="use-base" data-url="' + esc(suggested) + '">Use ' + esc(suggested) + '</button></div>' : '');
+  }
+  layer.innerHTML = '<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(l.name) + '" data-id="' + esc(l.id) + '" data-tab="' + d.tab + '">'
+    + '<div class="sheet-top" id="dh">' + drawerHead(l, a) + '</div>'
+    + '<div class="tabs" role="tablist">' + tab('details', 'Details') + tab('message', 'Messages') + tab('preview', 'Preview site') + '</div>' + body + '</div></div>';
+  $('.sheet').scrollTop = keepTop;
+  if (d.tab === 'preview') { const host = $('#pv-host'); try { const pv = buildPreview(l); host.attachShadow({ mode: 'open' }).innerHTML = '<style>' + pv.css + '</style>' + pv.body; } catch (e) { host.textContent = 'The preview cannot be shown here. Download the file to see it.'; } }
+}
+function refreshDrawerHead(){ const d = state.drawer, el = $('#dh'); if (d && el && state.leads[d.id]) el.innerHTML = drawerHead(state.leads[d.id], assess(state.leads[d.id])); }
+function textBox(title, text){
+  $('#layer').innerHTML = '<div class="veil" data-act="veil"><div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><div class="row" style="justify-content:space-between;margin:0 0 12px"><h2>' + esc(title) + '</h2><button class="btn small" data-act="close">Close</button></div><p class="note" style="margin-bottom:10px">Saving files is not available in this view. Select all of the text and copy it.</p><textarea rows="22" readonly id="tb">' + esc(text) + '</textarea></div></div>';
+  state.drawer = null; const tb = $('#tb'); tb.focus(); tb.select();
+}
+
+/* ---------- render ---------- */
+const VIEWS = { today: viewToday, leads: viewLeads, import: viewImport, results: viewResults, settings: viewSettings };
+const NAV = [['today', 'Today'], ['leads', 'Leads'], ['import', 'Import'], ['results', 'Results'], ['settings', 'Settings']];
+function viewGate(){
+  const g = state.gate;
+  if (g === 'down') return '<div class="head"><h1>Lead Engine</h1><p class="sub">The app is running, but it cannot reach its storage.</p></div><div class="callout">' + esc(state.gateMsg || '') + '</div><div class="row"><button class="btn" data-act="reload">Try again</button></div>';
+  const setup = g === 'setup';
+  return '<div class="head"><h1>Lead Engine</h1><p class="sub">' + (setup ? 'Create the password you will use to open your leads on any device.' : 'Sign in to open your leads.') + '</p></div>'
+    + '<div class="panel" style="max-width:420px"><label class="f"><span>Password</span><input type="password" id="gate-pw" autocomplete="' + (setup ? 'new-password' : 'current-password') + '"></label>'
+    + (setup ? '<label class="f"><span>Type it again</span><input type="password" id="gate-pw2" autocomplete="new-password"><small>At least 10 characters. There is no reset email, so keep it somewhere safe.</small></label>' : '')
+    + '<div class="row" style="margin-top:0"><button class="btn primary" data-act="gate-go">' + (setup ? 'Create password' : 'Sign in') + '</button></div><p class="note" id="gate-msg" style="margin-top:10px" role="status"></p></div>';
+}
+function renderNav(){
+  if (state.gate) { $('#nav').innerHTML = ''; $('#foot').textContent = ''; return; }
+  let due = 0;
+  if (state.ready) { const t = todayISO(); computeAll().forEach(x => { if (x.l.status === 'replied' || x.l.status === 'booked' || (x.l.status === 'contacted' && x.st && x.st.due <= t)) due++; }); }
+  $('#nav').innerHTML = NAV.map(v => '<button data-act="nav" data-view="' + v[0] + '"' + (state.view === v[0] ? ' aria-current="page"' : '') + '><span>' + v[1] + '</span>' + (v[0] === 'today' && due ? '<span class="n">' + due + '</span>' : '') + '</button>').join('');
+  $('#foot').textContent = state.mode === 'cloud' ? 'Saved with this page' : state.mode === 'api' ? 'Saved to your database' : state.mode === 'local' ? 'Saved in this browser' : state.mode === 'memory' ? 'Not saved' : '';
+}
+function render(){
+  renderNav();
+  const view = $('#view'), act = document.activeElement, keep = act && view.contains(act) && act.id ? { id: act.id, s: act.selectionStart, e: act.selectionEnd } : null;
+  view.innerHTML = !state.ready ? '<div class="head"><h1>Lead Engine</h1><p class="sub">Loading your leads…</p></div>' : state.gate ? viewGate() : VIEWS[state.view]();
+  if (keep) { const el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) {} } }
+}
+function softRender(){
+  const act = document.activeElement, typing = act && $('#view').contains(act) && /^(INPUT|TEXTAREA|SELECT)$/.test(act.tagName);
+  if (typing && (state.view === 'settings' || state.view === 'import')) return renderNav();
+  render();
+  if (state.drawer && !state.leads[state.drawer.id]) renderDrawer(); else refreshDrawerHead();
+}
+function go(view){ state.view = view; state.shown = 100; render(); window.scrollTo(0, 0); }
+function autoPull(){ if (store.api && !state.gate && !store.pending && document.visibilityState === 'visible' && Date.now() - store.pulled > 30000) store.pull(); }
+
+/* ---------- actions ---------- */
+async function copyText(text, okMsg){
+  try { await navigator.clipboard.writeText(text); return toast(okMsg); } catch (e) {}
+  try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); if (ok) return toast(okMsg); } catch (e) {}
+  toast('Copy is blocked here. Select the text and copy it by hand.');
+}
+async function saveFile(filename, data, title){
+  if (!state.downloads && !window.claude) {
+    const url = URL.createObjectURL(new Blob([data], { type: 'text/plain;charset=utf-8' })), a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 3000);
+    return toast('Saved ' + filename);
+  }
+  if (!state.downloads) return textBox(title, data);
+  try { await state.downloads.save({ filename, data }); toast('Saved ' + filename); }
+  catch (e) { if (e && e.code === 'declined') return; if (e && e.code === 'rate_limited') return toast('A save prompt is already open.'); textBox(title, data); }
+}
+function setStatus(id, patch, msg){ store.update(id, patch); toast(msg); render(); if (state.drawer) renderDrawer(); }
+let aiCtl = null;
+const actions = {
+  nav(b){ go(b.dataset.view); },
+  open(b, id){ const l = state.leads[id]; if (!l) return; const st = nextStep(l); state.drawer = { id, tab: b.dataset.tab || 'details', touch: st ? st.n : 1 }; renderDrawer(); const sh = $('.sheet'); if (sh) sh.scrollTop = 0; },
+  close(){ state.drawer = null; $('#layer').innerHTML = ''; },
+  veil(b, id, e){ if (e.target === b) actions.close(); },
+  tab(b){ state.drawer.tab = b.dataset.tab; renderDrawer(); },
+  touch(b){ state.drawer.touch = Number(b.dataset.n); renderDrawer(); },
+  more(){ state.shown += 100; $('#lead-list').innerHTML = leadList(); },
+  'today-tab'(b){ state.todayTab = b.dataset.v; render(); },
+  'wa-go'(b, id){ if (!id) return; state.opened[id] = true; setTimeout(() => { render(); }, 600); },
+  sent(b, id){
+    const l = state.leads[id], st = l && nextStep(l); if (!st) return toast('This lead has no message due.'); if (suppressed(l)) return;
+    const p = { ['t' + st.n]: todayISO() }; if (st.n === 1) { p.status = 'contacted'; p.pitched = assess(l).svc || ''; }
+    delete state.opened[id];
+    setStatus(id, p, TOUCH[st.n].label + (st.n === 3 ? ' marked done for ' : ' marked sent for ') + l.name);
+    if (state.drawer && state.drawer.id === id) { const nx = nextStep(state.leads[id]); if (nx) { state.drawer.touch = nx.n; renderDrawer(); } }
+  },
+  replied(b, id){ setStatus(id, { status: 'replied', repliedAt: todayISO() }, 'Marked as replied. The sequence has stopped.'); },
+  booked(b, id){ const l = state.leads[id]; setStatus(id, { status: 'booked', bookedAt: todayISO(), repliedAt: l.repliedAt || todayISO() }, 'Call booked.'); },
+  won(b, id){ const l = state.leads[id]; setStatus(id, { status: 'won', wonAt: todayISO(), repliedAt: l.repliedAt || todayISO(), mrr: Number(state.settings.price) || 0 }, l.name + ' is now a client.'); },
+  lost(b, id){ setStatus(id, { status: 'lost', lostAt: todayISO() }, 'Marked as lost.'); },
+  unsub(b, id){ setStatus(id, { status: 'unsub' }, 'Unsubscribed. This business will not be contacted again.'); },
+  dnc(b, id){ setStatus(id, { status: 'dnc' }, 'Marked Do not contact.'); },
+  reopen(b, id){ const l = state.leads[id]; setStatus(id, { status: l.t1 ? 'contacted' : 'new' }, 'Reopened.'); },
+  'wa-set'(b, id){ const v = b.dataset.v; store.update(id, { wa: v }); if (v === 'yes') state.todayTab = 'wa'; renderDrawer(); render(); toast(v === 'yes' ? 'Marked as on WhatsApp.' : v === 'no' ? 'Marked as not on WhatsApp.' : 'WhatsApp check cleared.'); },
+  'copy-wa'(b, id){ copyText(waUrl(state.leads[id]), 'WhatsApp link copied.'); },
+  takedown(b, id){
+    const url = String(state.leads[id].previewUrl || ''), m = store.api && url.indexOf(location.origin + '/p/') === 0 && url.match(/\/p\/([a-z0-9-]+)$/);
+    if (m) apiCall('/api/preview?slug=' + m[1], null, 'DELETE').catch(() => {});
+    setStatus(id, { previewUrl: '' }, m ? 'Preview taken down.' : 'Preview link removed.');
+  },
+  async 'publish-pv'(b, id){
+    const l = state.leads[id], pv = buildPreview(l); b.disabled = true;
+    try {
+      const r = await apiCall('/api/preview', { slug: pv.file.replace(/\.html$/, '') + '-' + id.slice(-4).toLowerCase(), html: pv.html });
+      store.update(id, { previewUrl: location.origin + r.path }); renderDrawer(); render(); toast('Preview published. Your messages now include the link.');
+    } catch (e) { b.disabled = false; toast(e.message || 'Could not publish the preview.'); }
+  },
+  reload(){ location.reload(); },
+  async 'gate-go'(){
+    const pw = $('#gate-pw').value, pw2 = $('#gate-pw2'), say = t => { const m = $('#gate-msg'); if (m) m.textContent = t; };
+    if (state.gate === 'setup' && pw !== pw2.value) return say('The two passwords do not match.');
+    say('One moment…');
+    try { await apiCall('/api/auth', { op: state.gate === 'setup' ? 'setup' : 'login', password: pw }); state.gate = ''; state.ready = false; render(); await store.pull(); }
+    catch (e) { say(e.message || 'That did not work.'); }
+  },
+  async 'sign-out'(){ try { await apiCall('/api/auth', { op: 'logout' }); } catch (e) {} state.leads = {}; store.docOf = {}; store.pulled = 0; state.gate = 'login'; state.view = 'today'; actions.close(); render(); },
+  async 'change-pw'(){
+    const cur = $('#pw-cur'), nw = $('#pw-new');
+    try { await apiCall('/api/auth', { op: 'change', current: cur.value, password: nw.value }); cur.value = ''; nw.value = ''; toast('Password changed. Other devices must sign in again.'); }
+    catch (e) { toast(e.message || 'Could not change the password.'); }
+  },
+  'audit-save'(b, id){ const card = b.closest('.lead'), p = { done: true }; card.querySelectorAll('input[data-k]').forEach(i => { p[i.dataset.k] = i.checked; }); setStatus(id, { audit: p }, 'Audit saved.'); },
+  'audit-done'(b, id){ setStatus(id, { audit: { done: true } }, 'Audit saved.'); },
+  delete(b, id){ store.remove(id); actions.close(); render(); toast('Lead deleted.'); },
+  clear(){ store.clear(); render(); toast('All leads deleted.'); },
+  'copy-msg'(b, id){ const sub = $('#msg-subject'), body = $('#msg-body').value; copyText((sub && sub.value ? 'Subject: ' + sub.value + '\n\n' : '') + body, 'Copied.'); },
+  'reset-msg'(b, id){ const n = state.drawer.touch; store.update(id, { msgs: { ['m' + n]: null } }); renderDrawer(); render(); },
+  async 'write-ai'(b, id){
+    const l = state.leads[id]; if (!l || !state.sample || state.busy) return;
+    state.busy = id; aiCtl = new AbortController(); renderDrawer();
+    try {
+      const out = await state.sample.json(aiPrompt(l), { signal: aiCtl.signal, cache: false });
+      const msgs = {}, mail = channel(l) === 'email';
+      [1, 2, 3, 4].forEach(n => { const m = out && out['m' + n]; if (m && typeof m.body === 'string' && m.body.trim()) msgs['m' + n] = { subject: String(m.subject || template(l, n).subject || ''), body: m.body.trim() + (n !== 3 && mail ? '\n\n' + footer(l) : '') }; });
+      if (!Object.keys(msgs).length) throw { code: 'invalid_json' };
+      store.update(id, { msgs }); render(); toast('Messages rewritten for ' + l.name + '. Read them before you send.');
+    } catch (e) {
+      const c = e && e.code;
+      if (c === 'not_granted') { state.sample = null; toast('Claude is not allowed here, so the templates stay.'); }
+      else if (c === 'rate_limited') toast('Too many requests. Wait a minute and try again.');
+      else if (c !== 'cancelled') toast(c === 'server' && e.message ? e.message : 'Claude could not write these. The templates are unchanged.');
+    } finally { state.busy = null; aiCtl = null; if (state.drawer && state.drawer.id === id) renderDrawer(); }
+  },
+  'stop-ai'(){ if (aiCtl) aiCtl.abort(); },
+  'dl-preview'(b, id){ const pv = buildPreview(state.leads[id]); saveFile(pv.file, pv.html, 'Preview file: ' + pv.file); },
+  'use-base'(b, id){ store.update(id, { previewUrl: b.dataset.url }); renderDrawer(); render(); toast('Preview link saved.'); },
+  parse(){ const im = state.imp, rows = parseTable(im.text); if (rows.length < 2) { im.rows = null; im.msg = 'Paste the column names plus at least one business.'; } else { im.rows = rows; im.headers = rows[0]; im.map = guessMap(rows[0]); im.msg = im.map.name < 0 ? 'No business name column was recognised. Pick it below.' : ''; } render(); },
+  example(){ state.imp.text = exampleRows(); actions.parse(); },
+  'do-import'(){
+    const r = readImport(); if (!r.fresh.length && !r.updates.length) return;
+    if (r.fresh.length) store.add(r.fresh);
+    r.updates.forEach(u => store.update(u.id, u.patch));
+    state.imp = { text: '', rows: null, headers: [], map: {}, city: '', st: '', niche: '', msg: '' };
+    toast([r.fresh.length ? r.fresh.length + ' leads imported' : '', r.updates.length ? r.updates.length + ' updated' : ''].filter(Boolean).join(', ') + '.'); go('today');
+  },
+  export(){
+    const cols = ['name', 'ownerName', 'email', 'emailVerified', 'phone', 'on_whatsapp', 'whatsapp_number', 'social', 'website', 'category', 'city', 'state', 'rating', 'reviews', 'tier', 'score', 'problems', 'offer', 'finding', 'status', 'previewUrl', 't1', 't2', 't3', 't4', 'note'];
+    const q = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const val = (c, x) => c === 'tier' ? x.a.tier : c === 'score' ? x.a.score : c === 'status' ? STATUS[x.l.status] : c === 'on_whatsapp' ? (x.l.wa || '') : c === 'whatsapp_number' ? (x.l.wa === 'yes' && waNum(x.l) ? '+' + waNum(x.l) : '')
+      : c === 'problems' ? x.a.probs.map(k => probLabel(k, x.l)).join('; ') : c === 'offer' ? (x.a.svc ? SERVICES[x.a.svc].name : '') : x.l[c];
+    const list = filtered(); if (!list.length) return toast('No leads to export.');
+    const csv = cols.join(',') + '\n' + list.map(x => cols.map(c => q(val(c, x))).join(',')).join('\n') + '\n';
+    saveFile('leads-' + todayISO() + '.csv', csv, 'Leads as CSV');
+  }
+};
+const reList = () => { state.shown = 100; $('#lead-list').innerHTML = leadList(); };
+const changes = {
+  field(el){ const id = state.drawer && state.drawer.id; if (!id) return; const f = el.dataset.f; let v = el.type === 'checkbox' ? el.checked : el.value.trim(); if (el.type === 'number') v = v === '' ? '' : Number(v);
+    const p = { [f]: v }; if (f === 'website' && /^http:\/\//i.test(v)) p.audit = { nohttps: true };
+    store.update(id, p); render(); refreshDrawerHead(); if (/^(website|email|emailVerified|phone|waPhone|rating|reviews|lastReview|recentManual)$/.test(f)) renderDrawer(); },
+  audit(el){ const id = state.drawer && state.drawer.id; if (!id) return; store.update(id, { audit: { [el.dataset.k]: el.checked, done: true } }); render(); renderDrawer(); },
+  flag(el){ const id = state.drawer && state.drawer.id; if (!id) return; store.update(id, { audit: { [el.dataset.k]: el.checked } }); render(); renderDrawer(); },
+  svc(el){ const id = state.drawer && state.drawer.id; if (!id) return; store.update(id, { service: el.value, msgs: { m1: null, m2: null, m3: null, m4: null } }); render(); renderDrawer(); toast('Offer changed. The messages were rewritten to match.'); },
+  msg(){ const d = state.drawer; if (!d) return; const sub = $('#msg-subject'); store.update(d.id, { msgs: { ['m' + d.touch]: { subject: sub ? sub.value : (getMsg(state.leads[d.id], d.touch).subject || ''), body: $('#msg-body').value } } }); render(); },
+  set(el){ const f = el.dataset.f; let v = el.value; if (el.type === 'number') v = Number(v) || 0; else if (f !== 'services') v = v.trim(); state.settings[f] = v; store.saveSettings(); renderNav(); toast('Saved.'); },
+  offer(el){ const off = offered(); off[el.dataset.k] = el.checked; state.settings.offers = Object.keys(SERVICES).filter(k => off[k]).join(','); store.saveSettings(); renderNav(); toast(state.settings.offers ? 'Saved.' : 'Tick at least one service, or no lead will qualify.'); },
+  'f-tier'(el){ state.filter.tier = el.value; reList(); },
+  'f-svc'(el){ state.filter.svc = el.value; reList(); },
+  'f-status'(el){ state.filter.status = el.value; reList(); },
+  'f-wa'(el){ state.filter.wa = el.value; reList(); },
+  map(el){ state.imp.map[el.dataset.f] = Number(el.value); render(); },
+  file(el){ const file = el.files && el.files[0]; if (!file) return; const fr = new FileReader(); fr.onload = () => { state.imp.text = String(fr.result || ''); actions.parse(); }; fr.onerror = () => toast('That file could not be read.'); fr.readAsText(file); }
+};
+const inputs = {
+  q(el){ state.filter.q = el.value; reList(); },
+  'imp-text'(el){ state.imp.text = el.value; },
+  'imp-city'(el){ state.imp.city = el.value; },
+  'imp-st'(el){ state.imp.st = el.value; },
+  'imp-niche'(el){ state.imp.niche = el.value; },
+  'msg-count'(el){ const c = $('#msg-count'); if (c) c.textContent = words(el.value) + ' words'; const wl = $('#wa-link'), d = state.drawer; if (wl && d && state.leads[d.id]) wl.href = waUrl(state.leads[d.id], el.value); }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  if (b.dataset.confirm && !b.dataset.armed) { b.dataset.armed = '1'; b.dataset.label = b.textContent; b.textContent = b.dataset.confirm; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.label; } }, 4000); return; }
+  const holder = b.closest('[data-id]'), fn = actions[b.dataset.act];
+  if (fn) fn(b, holder ? holder.dataset.id : null, e);
+});
+document.addEventListener('change', e => { const el = e.target.closest('[data-chg]'); if (el && changes[el.dataset.chg]) changes[el.dataset.chg](el); });
+document.addEventListener('input', e => { const el = e.target.closest('[data-inp]'); if (el && inputs[el.dataset.inp]) inputs[el.dataset.inp](el); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#layer').firstChild) actions.close();
+  if (e.key === 'Enter' && state.gate && e.target.id && /^gate-pw/.test(e.target.id)) actions['gate-go']();
+});
+document.addEventListener('visibilitychange', autoPull);
+setInterval(autoPull, 60000);
+
+/* ---------- start ---------- */
+render();
+store.init();
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('sample').then(s => { state.sample = s || null; if (state.drawer) renderDrawer(); }).catch(() => {});
+  window.claude.use('downloads').then(d => { state.downloads = d || null; }).catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
